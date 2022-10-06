@@ -291,7 +291,7 @@ namespace Utility.DataStructures
                 return Graph.RemoveEdge(item);
             }
 
-            protected virtual bool OnAddNode(Edge<TNode> item)
+            protected virtual bool OnAddEdge(Edge<TNode> item)
             {
                 return Graph.AddEdge(item);
             }
@@ -324,7 +324,7 @@ namespace Utility.DataStructures
             public bool Add(Edge<TNode> item)
             {
                 CheckInitialized();
-                return OnAddNode(item);
+                return OnAddEdge(item);
             }
 
             public void Clear()

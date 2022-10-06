@@ -13,6 +13,5 @@ namespace Utility
         IEnumerable<TNode> GetIns(TNode node);
         IEnumerable<TNode> GetOuts(TNode node);
 
-        //TODO: add Copy-function
     }
 }

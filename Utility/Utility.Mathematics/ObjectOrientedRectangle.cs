@@ -70,7 +70,7 @@ namespace Utility.Mathematics
             return new RectangleR(Point2r.Zero, new Vector2r(1, 1)).Intersects(ray, out point1, out point2);
         }
 
-        public bool Intersect(Ray2Dr ray, double offset1, out double offset2)
+        public bool Intersect(Ray2Dr ray, out double offset1, out double offset2)
         {
             Matrix2x2r transform = GetTransformToUnitSquare();
 
