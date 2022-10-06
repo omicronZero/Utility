@@ -1,0 +1,405 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<#
+const int minimum = 2;
+const int maximum = 4;
+#>
+
+using System;
+using System.Collections.Generic;
+
+namespace Utility
+{
+<#
+
+IEnumerable<T[]> GetPermutations<T>(T[] array)
+{
+	array = (T[])array.Clone();
+
+	IEnumerable<T[]> Permute(int k)
+	{
+		if (k == 1)
+			yield return (T[])array.Clone();
+		else
+		{
+			foreach(var perm in Permute(k - 1))
+				yield return perm;
+
+			for(int i = 0; i < k - 1; i++)
+			{
+				var temp = array[k - 1];
+				int tgt = k % 2 == 0 ? i : 0;
+
+				array[k - 1] = array[tgt];
+				array[tgt] = temp;
+
+				foreach(var perm in Permute(k - 1))
+					yield return perm;
+			}
+		}
+	}
+	
+	foreach(var perm in Permute(array.Length))
+		yield return perm;
+}
+
+IEnumerable<T[]> GetSubsets<T>(T[] array, int length)
+{
+	BitArray mask = new BitArray(array.Length);
+	T[] subset = new T[length];
+
+	//we expect rather few operations --> just a simple algorithm going through each subset
+	//and all permutation of that if the length matches
+	while (true)
+	{
+		int numberTrues = 0;
+
+		//count number of trues
+		for(int i = 0; i < mask.Length; i++)
+		{
+			if (mask[i])
+				numberTrues++;
+		}
+
+		if (numberTrues == mask.Length)
+			break;
+
+		//increment and re-count number of trues and pick the subset
+
+		numberTrues = 0;
+
+		bool carry = true;
+		for(int i = 0; i < mask.Length; i++)
+		{
+			if (carry)
+			{
+				if (mask[i])
+					mask[i] = false;
+				else
+				{
+					mask[i] = true;
+					carry = false;
+				}
+			}
+
+			if (mask[i])
+			{
+                if (numberTrues < length)
+                    subset[numberTrues] = array[i];
+				numberTrues++;
+			}
+		}
+
+		//if we don't have a matching sequence length we continue with the next iteration
+		if (numberTrues != length)
+			continue;
+
+		//now we go through all permutations
+		foreach(var perm in GetPermutations(subset))
+			yield return perm;
+	}
+}
+
+for(int n = minimum; n <= maximum; n++)
+{
+	var paramIndices = Enumerable.Range(1, n);
+	var generics = string.Join(", ", paramIndices.Select((i) => "T" + i));
+
+	#>
+
+	public struct AnyOf<<#=generics#>> : IEquatable<AnyOf<<#=generics#>>>, ICastable
+	{
+		public int TypeIndex { get; }
+
+		<#
+			for(int i = 1; i <= n; i++)
+			{
+			#>
+
+		private readonly T<#=i#> _value<#=i#>;
+			<#
+			}
+		#>
+
+		<#
+			for(int i = 1; i <= n; i++)
+			{
+			#>
+
+		public AnyOf(T<#=i#> value<#=i#>)
+			: this()
+		{
+			TypeIndex = <#=i#>;
+			_value<#=i#> = value<#=i#>;
+		}
+
+		public static implicit operator AnyOf<<#=generics#>>(T<#=i#> value<#=i#>)
+		{
+			return new AnyOf<<#=generics#>>(value<#=i#>);
+		}
+
+		public static explicit operator T<#=i#>(AnyOf<<#=generics#>> value)
+		{
+			return value.Cast<T<#=i#>>();
+		}
+			<#
+			}
+		#>
+
+		bool ICastable.HasInstanceType => true;
+
+		public Type InstanceType
+		{
+			get
+			{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+				if (TypeIndex == <#=i#>)
+					return typeof(T<#=i#>);
+				<#
+				}
+			#>
+
+				throw new InvalidOperationException("The current instance has not been initialized to a value.");
+			}
+		}
+
+		public bool IsDefault => TypeIndex == 0;
+
+		public override bool Equals(object obj) => obj is AnyOf<<#=generics#>> other && Equals(other);
+
+		public bool Equals(AnyOf<<#=generics#>> other)
+		{
+			return other == this;
+		}
+
+		public override int GetHashCode()
+		{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+			if (TypeIndex == <#=i#>)
+				return _value<#=i#>?.GetHashCode() ?? 0;
+				<#
+				}
+			#>
+
+			return 0;
+		}
+
+		public static bool operator ==(AnyOf<<#=generics#>> left, AnyOf<<#=generics#>> right)
+		{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+			if (left.TypeIndex == <#=i#>)
+			{
+
+				<#
+					for(int j = 1; j <= n; j++)
+					{
+					#>
+
+				if (right.TypeIndex == <#=j#>)
+					return (T<#=i#>)left is T<#=j#> v && EqualityComparer<T<#=j#>>.Default.Equals(v, (T<#=j#>)right);
+					<#
+					}
+				#>
+
+			}
+				<#
+				}
+			#>
+
+			return false;
+		}
+
+		public static bool operator !=(AnyOf<<#=generics#>> left, AnyOf<<#=generics#>> right)
+		{
+			return !(left == right);
+		}
+
+		public bool Is<T>()
+		{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+			if (TypeIndex == <#=i#>)
+				return _value<#=i#> is T;
+				<#
+				}
+			#>
+
+			throw new InvalidOperationException("The current instance has not been initialized to a value.");
+		}
+
+		public bool Is<T>(out T value)
+		{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+			if (TypeIndex == <#=i#>)
+			{
+				if (_value<#=i#> is T v)
+				{
+					value = v;
+					return true;
+				}
+				else
+				{
+					value = default;
+					return false;
+				}
+			}
+					
+				<#
+				}
+			#>
+
+			throw new InvalidOperationException("The current instance has not been initialized to a value.");
+		}
+
+		public T Cast<T>()
+		{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+			if (TypeIndex == <#=i#>)
+			{
+				if (_value<#=i#> is T v)
+					return v;
+				else
+					throw new InvalidCastException();
+			}
+					
+				<#
+				}
+			#>
+
+			throw new InvalidOperationException("The current instance has not been initialized to a value.");
+		}
+
+		public object GetInstance()
+		{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+			if (TypeIndex == <#=i#>)
+			{
+				return _value<#=i#>;
+			}
+					
+				<#
+				}
+			#>
+
+			throw new InvalidOperationException("The current instance has not been initialized to a value.");
+		}
+
+		public override string ToString() => IsDefault ? "" : (GetInstance()?.ToString() ?? "null");
+
+		public T As<T>()
+			where T: class
+		{
+			<#
+				for(int i = 1; i <= n; i++)
+				{
+				#>
+
+			if (TypeIndex == <#=i#>)
+			{
+				if (_value<#=i#> is T v)
+					return v;
+				else
+					return null;
+			}
+					
+				<#
+				}
+			#>
+
+			throw new InvalidOperationException("The current instance has not been initialized to a value.");
+		}
+
+		<#
+
+		for(int m = 2; m <= n; m++)
+		{
+			var orig = Enumerable.Range(1, n).ToArray();
+			foreach(var subset in GetSubsets(orig, m))
+			{
+				if (subset.Length == orig.Length && subset.SequenceEqual(orig))
+					continue;
+
+				string subsetGenerics = string.Join(", ", subset.Select((i) => "T" + i));
+			#>
+				
+		public static implicit operator AnyOf<<#=subsetGenerics#>>(AnyOf<<#=generics#>> value)
+		{
+			<#
+				foreach(var i in subset)
+				{
+				#>
+
+			if (value.TypeIndex == <#=i#>)
+				return value.Cast<T<#=i#>>();
+					
+				<#
+				}
+			#>
+
+			throw new InvalidOperationException("The instance has not been initialized to a value.");
+		}
+		
+		<#
+				if (m != n)
+				{
+		#>
+
+		public static implicit operator AnyOf<<#=generics#>>(AnyOf<<#=subsetGenerics#>> value)
+		{
+			<#
+				for(int i = 0; i < subset.Length; i++)
+				{
+				#>
+
+			if (value.TypeIndex == <#=i+1#>)
+				return value.Cast<T<#=subset[i]#>>();
+					
+				<#
+				}
+			#>
+
+			throw new InvalidOperationException("The instance has not been initialized to a value.");
+		}
+
+			<#
+				}
+			}
+		}
+		#>
+	}
+	<#
+}
+#>
+}

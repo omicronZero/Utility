@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Update="AnyOf.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AnyOf.tt</DependentUpon>
+    </Compile>
     <Compile Update="Range.Primitive.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -21,6 +26,10 @@
     <None Update="Range.Primitive.tt">
       <LastGenOutput>Range.Primitive.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="AnyOf.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AnyOf.cs</LastGenOutput>
     </None>
     <None Update="Util.Automatic.tt">
       <LastGenOutput>Util.Automatic.cs</LastGenOutput>
