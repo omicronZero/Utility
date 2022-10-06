@@ -33,8 +33,8 @@ namespace Utility.ObjectModel
 
         protected override void CreateInOuts(TNode node, out GenericGraph<TNode>.NodeEdgesCollection ins, out GenericGraph<TNode>.NodeEdgesCollection outs)
         {
-            ins = new GenericGraph<TNode>.NodeEdgesCollection();
-            outs = new GenericGraph<TNode>.NodeEdgesCollection();
+            ins = new NodeEdgesCollection();
+            outs = new NodeEdgesCollection();
         }
 
         new public class NodeCollection : GenericGraph<TNode>.NodeCollection, INotifyCollectionChanged
