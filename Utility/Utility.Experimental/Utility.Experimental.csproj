@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Utility.Contexts\Utility.Contexts.csproj" />
+    <ProjectReference Include="..\Utility.DataStructures\Utility.DataStructures.csproj" />
+    <ProjectReference Include="..\Utility.Geometry\Utility.Geometry.csproj" />
+    <ProjectReference Include="..\Utility.Mathematics.MathObjects\Utility.Mathematics.MathObjects.csproj" />
+    <ProjectReference Include="..\Utility.Mathematics\Utility.Mathematics.csproj" />
+    <ProjectReference Include="..\Utility.ObjectDescription\Utility.ObjectDescription.csproj" />
+    <ProjectReference Include="..\Utility.Resources\Utility.Resources.csproj" />
+    <ProjectReference Include="..\Utility.Workflow\Utility.Workflow.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Data\DataStreamT4.cs">
+      <DependentUpon>DataStreamT4.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="EmptyTemplate.cs">
+      <DependentUpon>EmptyTemplate.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="ObjectGeneration\ObjectGeneratorExtensions.generated.cs">
+      <DependentUpon>ObjectGeneratorExtensions.generated.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Utils\ProgressingIterator.generated.cs">
+      <DependentUpon>ProgressingIterator.generated.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\DataStreamT4.tt">
+      <LastGenOutput>DataStreamT4.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="EmptyTemplate.tt">
+      <LastGenOutput>EmptyTemplate.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="ObjectGeneration\ObjectGeneratorExtensions.generated.tt">
+      <LastGenOutput>ObjectGeneratorExtensions.generated.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Utils\ProgressingIterator.generated.tt">
+      <LastGenOutput>ProgressingIterator.generated.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>

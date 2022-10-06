@@ -1,0 +1,147 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using System;
+
+<#
+
+const int maxDimension = 8;
+const string indexParamBaseName = "index";
+string[] indexParamNames = new string[]{"x", "y", "z"};
+#>
+namespace Utility.Geometry.Buffers
+{
+<#
+
+for(int i = 2; i <= maxDimension; i++)
+{
+string[] indexNames = (i <= indexParamNames.Length ? indexParamNames.Take(i) : Enumerable.Range(1, i).Select((j) => indexParamBaseName + j)).ToArray();
+
+#>
+	public struct AccessView<#=i#>D<T>
+	{
+		private readonly Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T> _getter;
+		private readonly Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T> _setter;
+
+		public bool CanRead
+		{
+			get => _getter != null;
+		}
+
+		public bool CanWrite
+		{
+			get => _setter != null;
+		}
+
+		public bool IsReadOnly
+		{
+			get => _getter != null && _setter == null;
+		}
+
+		public bool IsWriteOnly
+		{
+			get => _getter == null && _setter != null;
+		}
+
+		public AccessView<#=i#>D(Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T> getter,
+						  Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T> setter)
+		{
+			_getter = getter;
+			_setter = setter;
+		}
+
+		public T this[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long " + indexNames[j - 1]))#>]
+		{
+			get
+			{
+				if (_getter == null)
+				{
+					throw new NotSupportedException("Reading is not supported by this instance.");
+				}
+
+				return _getter(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>);
+			}
+			set 
+			{
+				if (_setter == null)
+				{
+					throw new NotSupportedException("Writing is not supported by this instance.");
+				}
+
+				_setter(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>, value);
+			}
+		}
+
+		public static implicit operator AccessView<#=i#>D<T, long>(AccessView<#=i#>D<T> value)
+		{
+			return new AccessView<#=i#>D<T, long>(value._getter, value._setter);
+		}
+
+		public static implicit operator AccessView<#=i#>D<T>(AccessView<#=i#>D<T, long> value)
+		{
+			return new AccessView<#=i#>D<T>(value.Getter, value.Setter);
+		}
+	}
+
+	public struct AccessView<#=i#>D<T, TIndex>
+	{
+		internal Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T> Getter { get; }
+		internal Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T> Setter { get; }
+
+		public bool CanRead
+		{
+			get => Getter != null;
+		}
+
+		public bool CanWrite
+		{
+			get => Setter != null;
+		}
+
+		public bool IsReadOnly
+		{
+			get => Getter != null && Setter == null;
+		}
+
+		public bool IsWriteOnly
+		{
+			get => Getter == null && Setter != null;
+		}
+
+		public AccessView<#=i#>D(Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T> getter,
+						  Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T> setter)
+		{
+			Getter = getter;
+			Setter = setter;
+		}
+
+		public T this[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex " + indexNames[j - 1]))#>]
+		{
+			get
+			{
+				if (Getter == null)
+				{
+					throw new NotSupportedException("Reading is not supported by this instance.");
+				}
+
+				return Getter(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>);
+			}
+			set 
+			{
+				if (Setter == null)
+				{
+					throw new NotSupportedException("Writing is not supported by this instance.");
+				}
+
+				Setter(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>, value);
+			}
+		}
+	}
+
+<#
+}
+#>
+
+}

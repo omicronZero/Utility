@@ -1,0 +1,138 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using System;
+
+<#
+	string[] types = new string[]{"F|f|float", "R|r|double"};
+
+	foreach(var tp in types.Select((o) => o.Split('|')))
+	{
+	string t = tp[0];
+	string lt = tp[1];
+	string T = tp[2];
+	string cast = lt == "r" ? "" : $"({T})";
+#>
+
+namespace Utility.Mathematics
+{
+	[Serializable]
+	public struct Plane<#=t#> : IEquatable<Plane<#=t#>>
+	{
+		public <#=T#> N1, N2, N3, D;
+
+		//TODO: test
+		public Plane<#=t#>(Vector3<#=lt#> n, <#=T#> d)
+			: this(n.X, n.Y, n.Z, d)
+		{ }
+
+		public Plane<#=t#>(<#=T#> n1, <#=T#> n2, <#=T#> n3, <#=T#> d)
+		{
+			N1 = n1;
+			N2 = n2;
+			N3 = n3;
+			D = d;
+		}
+
+		public Vector3<#=lt#> ProjectNormal(Vector3<#=lt#> value)
+		{
+			return value + Normal * SignedDistanceTo(value);
+		}
+
+		public <#=T#> NormalizedSignedDistanceTo(Vector3<#=lt#> value)
+		{
+			<#=T#> dist = 1 / <#=cast#>Math.Sqrt(N1 * N1 + N2 * N2 + N3 * N3);
+
+			return SignedDistanceTo(value) * dist;
+		}
+
+		public <#=T#> NormalizedDistanceTo(Vector3<#=lt#> value)
+		{
+			return Math.Abs(NormalizedSignedDistanceTo(value));
+		}
+
+		public <#=T#> DistanceTo(Vector3<#=lt#> value)
+		{
+			return Math.Abs(SignedDistanceTo(value));
+		}
+
+		public <#=T#> SignedDistanceTo(Vector3<#=lt#> value)
+		{
+			return value.X * N1 + value.Y * N2 + value.Z * N3 + D;
+		}
+
+		public override string ToString()
+		{
+			return $"N1 = { N1 }, N2 = { N2 }, N3 = { N3 }, D = { D }";
+		}
+
+		public Vector3<#=lt#> Normal
+		{
+			get { return new Vector3<#=lt#>(N1, N2, N3); }
+		}
+
+		public void Normalize()
+		{
+			<#=T#> linv = Math.Sign(D) / <#=cast#>Math.Sqrt(N1 * N1 + N2 * N2 + N3 * N3);
+
+			N1 *= linv;
+			N2 *= linv;
+			N3 *= linv;
+			D *= linv;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj == null)
+				return false;
+
+			var p = obj as Plane<#=t#>?;
+
+			if (p == null)
+				return false;
+
+			return Equals(p.Value);
+		}
+
+		public bool Equals(Plane<#=t#> other)
+		{
+			return N1 == other.N1 && N2 == other.N2 && N3 == other.N3 && D == other.D;
+		}
+
+		public override int GetHashCode()
+		{
+			return N1.GetHashCode() ^ N2.GetHashCode() ^ N3.GetHashCode() ^ D.GetHashCode();
+		}
+
+		public static Plane<#=t#> FromVectors(Vector3<#=lt#> v1, Vector3<#=lt#> v2, Vector3<#=lt#> v3)
+		{
+			Vector3<#=lt#> n = Vector3<#=lt#>.Cross(v2 - v1, v3 - v1);
+
+			return new Plane<#=t#>(n, -n.Dot(v1));
+		}
+
+		public static Plane<#=t#> FromDirections(Vector3<#=lt#> v, Vector3<#=lt#> d1, Vector3<#=lt#> d2)
+		{
+			Vector3<#=lt#> n = Vector3<#=lt#>.Cross(d1, d2);
+
+			return new Plane<#=t#>(n, -n.Dot(v));
+		}
+
+		public static bool operator==(Plane<#=t#> left, Plane<#=t#> right)
+		{
+			return left.N1 == right.N1 && left.N2 == right.N2 && left.N3 == right.N3 && left.D == right.D;
+		}
+
+		public static bool operator!=(Plane<#=t#> left, Plane<#=t#> right)
+		{
+			return left.N1 != right.N1 || left.N2 != right.N2 || left.N3 != right.N3 || left.D != right.D;
+		}
+	}
+}
+
+<#
+}
+#>

@@ -1,0 +1,52 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+(string TypeName, int TypeSize, bool Signed)[] integerTypes = new (string, int, bool)[] {
+		("byte", 1, false),
+		("ushort", 2, false),
+		("uint", 4, false),
+		("ulong", 8, false),
+		("sbyte", 1, true),
+		("short", 2, true),
+		("int", 4, true),
+		("long", 8, true),
+	};
+
+#>
+
+using System;
+
+namespace Utility.Mathematics
+{
+	public static partial class MathUtil
+    {
+		<#
+			foreach(var (leftTypeName, leftTypeSize, leftSigned) in integerTypes)
+			{
+				foreach(var (rightTypeName, rightTypeSize, rightSigned) in integerTypes)
+				{
+					if (leftSigned == rightSigned && leftTypeSize != rightTypeSize)
+					{
+					#>
+
+		public static <#=leftTypeSize < rightTypeSize ? leftTypeName : rightTypeName#> Min(<#=leftTypeName#> left, <#=rightTypeName#> right)
+		{
+			return (<#=leftTypeSize < rightTypeSize ? leftTypeName : rightTypeName#>)Math.Min(left, right);
+		}
+					
+		public static <#=leftTypeSize > rightTypeSize ? leftTypeName : rightTypeName#> And(<#=leftTypeName#> left, <#=rightTypeName#> right)
+		{
+			return (<#=leftTypeSize < rightTypeSize ? leftTypeName : rightTypeName#>)(left & right);
+		}
+					<#
+					}
+				}
+			}
+		#>
+    }
+}

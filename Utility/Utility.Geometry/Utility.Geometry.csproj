@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Utility.Mathematics\Utility.Mathematics.csproj" />
+    <ProjectReference Include="..\Utility.Workflow\Utility.Workflow.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Buffers\AccessRangeView.cs">
+      <DependentUpon>AccessRangeView.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Buffers\AccessView.cs">
+      <DependentUpon>AccessView.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Buffers\ArrayAcccess.cs">
+      <DependentUpon>ArrayAcccess.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Buffers\AccessRangeView.tt">
+      <LastGenOutput>AccessRangeView.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Buffers\AccessView.tt">
+      <LastGenOutput>AccessView.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Buffers\ArrayAcccess.tt">
+      <LastGenOutput>ArrayAcccess.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>

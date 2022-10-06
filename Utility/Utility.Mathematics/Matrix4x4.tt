@@ -1,0 +1,176 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+namespace Utility.Mathematics
+{
+<#
+string[] types = new string[]{"float", "double"};
+string[] suffixes = new string[]{"f", "r"};
+string[] quaternionNames = new string[]{"QuaternionF", "QuaternionR"};
+string[] planeNames = new string[]{"PlaneF", "PlaneR"};
+
+for(int i = 0; i < types.Length; i++)
+{
+    string tp = types[i];
+    string suff = suffixes[i];
+    string tpnm = "Matrix4x4" + suff;
+    string vector3Name = "Vector3" + suff;
+    string quaternion = quaternionNames[i];
+    string plane = planeNames[i];
+    string sin = "System.Math.Sin($a$)";
+    string cos = "System.Math.Cos($a$)";
+    string tan = "System.Math.Atan($a$)";
+
+    if (tp != "double")
+    {
+        sin = "(" + tp + ")" + sin;
+        cos = "(" + tp + ")" + cos;
+        tan = "(" + tp + ")" + tan;
+    }
+#>
+    partial struct <#=tpnm#>
+    {
+        public static <#=tpnm#> Rotation(<#=quaternion#> quaternion)
+        {
+            return new <#=tpnm#>(
+                1 - 2 * (quaternion.X * quaternion.X + quaternion.Z * quaternion.Z), 2 * (quaternion.X * quaternion.Y - quaternion.S * quaternion.Z), 2 * (quaternion.X * quaternion.Z + quaternion.S * quaternion.Y), 0,
+                2 * (quaternion.X * quaternion.Y + quaternion.S * quaternion.Z), 1 - 2 * (quaternion.X * quaternion.X - quaternion.Z * quaternion.Z), 2 * (quaternion.Y * quaternion.Z - quaternion.S * quaternion.X), 0,
+                2 * (quaternion.X * quaternion.Z - quaternion.S * quaternion.Y), 2 * (quaternion.Y * quaternion.Z + quaternion.S * quaternion.X), 1 - 2 * (quaternion.X * quaternion.X - quaternion.Y * quaternion.Y), 0,
+                0, 0, 0, 1);
+        }
+
+        public static <#=quaternion#> ToQuaternion(<#=tpnm#> rotationMatrix)
+        {
+<#
+            string srepresentation = "System.Math.Sqrt(1 + rotationMatrix.M11 + rotationMatrix.M22 + rotationMatrix.M33)";
+
+            if (tp != "double")
+            {
+                srepresentation = "(" + tp + ")" + srepresentation;
+            }
+#>
+            <#=tp#> s = <#=srepresentation#>;
+            return new <#=quaternion#>(s / 2,
+                (rotationMatrix.M32 - rotationMatrix.M23) / (2 * s),
+                (rotationMatrix.M13 - rotationMatrix.M31) / (2 * s),
+                (rotationMatrix.M21 - rotationMatrix.M12) / (2 * s));
+        }
+
+
+        public static <#=tpnm#> Translation(<#=vector3Name#> translation)
+        {
+            return Translation(translation.X, translation.Y, translation.Z);
+        }
+
+        public static <#=tpnm#> Translation(<#=tp#> x, <#=tp#> y, <#=tp#> z)
+        {
+            return new <#=tpnm#>(0, 0, 0, x, 0, 0, 0, y, 0, 0, 0, z, 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> Scale(<#=vector3Name#> scale)
+        {
+            return Scale(scale.X, scale.Y, scale.Z);
+        }
+
+        public static <#=tpnm#> Scale(<#=tp#> x, <#=tp#> y, <#=tp#> z)
+        {
+            return new <#=tpnm#>(x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> Reflect(<#=plane#> plane)
+        {
+            return new <#=tpnm#>(1 - 2 * plane.N1 * plane.N1, -2 * plane.N1 * plane.N2, -2 * plane.N1 * plane.N3, -2 * plane.N1 * plane.D,
+                                 -2 * plane.N1 * plane.N2, 1 - 2 * plane.N2 * plane.N2, -2 * plane.N2 * plane.N3, -2 * plane.N2 * plane.D,
+                                 -2 * plane.N1 * plane.N3, -2 * plane.N2 * plane.N3, 1 - 2 * plane.N3 * plane.N3, -2 * plane.N3 * plane.D,
+                                 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> Reflect(<#=vector3Name#> planeNormal)
+        {
+            return Reflect(planeNormal.X, planeNormal.Y, planeNormal.Z);
+        }
+
+        public static <#=tpnm#> Reflect(<#=tp#> planeNormalX, <#=tp#> planeNormalY, <#=tp#> planeNormalZ)
+        {
+            return new <#=tpnm#>(1 - 2 * planeNormalX * planeNormalX, -2 * planeNormalX * planeNormalY, -2 * planeNormalX * planeNormalZ, 0,
+                                 -2 * planeNormalX * planeNormalY, 1 - 2 * planeNormalY * planeNormalY, -2 * planeNormalY * planeNormalZ, 0,
+                                 -2 * planeNormalX * planeNormalZ, -2 * planeNormalY * planeNormalZ, 1 - 2 * planeNormalZ * planeNormalZ, 0,
+                                 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> RotationAxis(<#=vector3Name#> axis, <#=tp#> angle)
+        {
+            return RotationAxis(axis.X, axis.Y, axis.Z, angle);
+        }
+
+        public static <#=tpnm#> RotationAxis(<#=tp#> axisX, <#=tp#> axisY, <#=tp#> axisZ, <#=tp#> angle)
+        {
+            <#=tp#> s = <#=sin.Replace("$a$", "angle")#>;
+            <#=tp#> c = <#=cos.Replace("$a$", "angle")#>;
+
+            return new <#=tpnm#>(axisX * axisX * (1 - c) + c, axisY * axisX * (1 - c) - axisZ * s, axisZ * axisX * (1 - c) + axisY * s, 0,
+                                 axisX * axisY * (1 - c) + axisZ * s, axisY * axisY * (1 - c) + c, axisZ * axisY * (1 - c) - axisX * s, 0,
+                                 axisX * axisZ * (1 - c) - axisY * s, axisY * axisZ * (1 - c) + axisX * s, axisZ * axisZ * (1 - c) + c, 0,
+                                 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> RotationX(<#=tp#> angle)
+        {
+            <#=tp#> s = <#=sin.Replace("$a$", "angle")#>;
+            <#=tp#> c = <#=cos.Replace("$a$", "angle")#>;
+
+            return new <#=tpnm#>(1, 0, 0, 0,
+                                 0, c, -s, 0,
+                                 0, s, c, 0,
+                                 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> RotationY(<#=tp#> angle)
+        {
+            <#=tp#> s = <#=sin.Replace("$a$", "angle")#>;
+            <#=tp#> c = <#=cos.Replace("$a$", "angle")#>;
+
+            return new <#=tpnm#>(c, 0, 0, s,
+                                 0, 1, 0, 0,
+                                 -s, 0, c, 0,
+                                 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> RotationZ(<#=tp#> angle)
+        {
+            <#=tp#> s = <#=sin.Replace("$a$", "angle")#>;
+            <#=tp#> c = <#=cos.Replace("$a$", "angle")#>;
+
+            return new <#=tpnm#>(c, -s, 0, 0,
+                                 s, c, 0, 0,
+                                 0, 0, 1, 0,
+                                 0, 0, 0, 1);
+        }
+
+        public static <#=tpnm#> RotationYawPitchRoll(<#=tp#> yaw, <#=tp#> pitch, <#=tp#> roll)
+        {
+            <#=tp#> sinyaw = <#=sin.Replace("$a$", "yaw")#>;
+            <#=tp#> cosyaw = <#=cos.Replace("$a$", "yaw")#>;
+            <#=tp#> sinpitch = <#=sin.Replace("$a$", "pitch")#>;
+            <#=tp#> cospitch = <#=cos.Replace("$a$", "pitch")#>;
+            <#=tp#> sinroll = <#=sin.Replace("$a$", "roll")#>;
+            <#=tp#> cosroll = <#=cos.Replace("$a$", "roll")#>;
+
+            return new <#=tpnm#>(cosyaw * cospitch, cosyaw * sinpitch * sinroll - sinyaw * cosroll, cosyaw * sinpitch * cosroll + sinyaw * sinroll, 0,
+                                 sinyaw * cospitch, sinyaw * sinpitch * sinroll + cosyaw * cosroll, sinyaw * sinpitch * cosroll - cosyaw * sinroll, 0,
+                                 -sinpitch, cospitch * sinroll, cospitch * cosroll, 0,
+                                 0, 0, 0, 1);
+        }
+
+        //TODO: Forward&Backward vector, Rows, Columns, Translation, Scale, Determinant, Invert, Transpose, Orthogonalize, Orthonormalize, Exponent
+        //TODO: LookAt L/R, Perspective L/R & opt. OffCenter & opt. Fov, Orthogonal L/R, Billboard L/R-Handed
+
+    }
+<#
+}
+#>
+}

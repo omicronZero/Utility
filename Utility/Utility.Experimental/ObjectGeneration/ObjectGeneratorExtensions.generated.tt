@@ -1,0 +1,91 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Utility.ObjectGeneration
+{
+    public static partial class ObjectGeneratorExtensions
+    {
+<#
+for(int i = 1; i <= 8; i++)
+{
+const string genericParamName = "TParam";
+string paraml = string.Join(", ", Enumerable.Range(1, i).Select((j) => genericParamName + j));
+string[] paramnms = Enumerable.Range(1, i).Select((j) => "param" + j + "Generator").ToArray();
+string[] tupleGenericStrings = Enumerable.Range(2, i - 1).Select((j) => string.Join(", ", Enumerable.Range(1, j).Select((k) => genericParamName + k))).ToArray();
+#>
+
+        public static ObjectGenerator<T> Create<T, <#=paraml#>>(
+                Func<<#=paraml#>, T> generator,
+<#
+
+for(int j = 1; j <= i; j++)
+{
+#>
+                ObjectGenerator<<#=genericParamName + j + "> " + paramnms[j - 1] + (j < i ? "," : "")#>
+<#
+}
+#>
+            )
+        {
+			if (generator == null)
+				throw new ArgumentNullException(nameof(generator));
+<#
+
+for(int j = 1; j <= i; j++)
+{
+#>
+			if (<#=paramnms[j - 1]#> == null)
+				throw new ArgumentNullException(nameof(<#=paramnms[j - 1]#>));
+<#
+}
+#>
+
+            return ObjectGenerator<T>.Create(() => generator(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => paramnms[j - 1] + ".Compute()"))#>));
+        }
+
+<#
+
+if (i > 1)
+{
+
+#>
+
+        public static ObjectGenerator<(<#=tupleGenericStrings[i - 2]#>)> Combine<<#=tupleGenericStrings[i - 2]#>>(
+<#
+
+for(int j = 1; j <= i; j++)
+{
+#>
+                ObjectGenerator<<#=genericParamName + j + "> " + paramnms[j - 1] + (j < i ? "," : "")#>
+<#
+}
+#>
+            )
+        {
+<#
+
+for(int j = 1; j <= i; j++)
+{
+#>
+			if (<#=paramnms[j - 1]#> == null)
+				throw new ArgumentNullException(nameof(<#=paramnms[j - 1]#>));
+<#
+}
+#>
+
+            return ObjectGenerator<(<#=tupleGenericStrings[i - 2]#>)>.Create(() => (<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => paramnms[j - 1] + ".Compute()"))#>));
+        }
+<#
+}
+}
+#>
+    }
+}

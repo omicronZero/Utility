@@ -1,0 +1,403 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+	int[] dimensions = new int[] {2, 3, 4};
+	string[] variables = new string[] {"X", "Y", "Z", "W"};
+
+	Tuple<string, string, string, bool>[] types = new Tuple<string, string, string, bool>[]
+		{
+			new Tuple<string, string, string, bool>("float", "f", "float", true), 
+			new Tuple<string, string, string, bool>("double", "r", "double", true),
+			//new Tuple<string, string, string, bool>("int", "i", "double", false)
+		};
+#>
+
+using System;
+
+namespace Utility.Mathematics
+{
+<#
+	foreach(var tp in types)
+		foreach(int dimension in dimensions)
+		{
+			if (dimension > variables.Length)
+				throw new ArgumentOutOfRangeException("dimension");
+			string  type = tp.Item1, suffix = tp.Item2, sqrscalar = tp.Item3;
+			bool hasMatrix = tp.Item4;
+#>
+	[System.Serializable()]
+	public partial struct Point<#=dimension#><#=suffix#> : System.IEquatable<Point<#=dimension#><#=suffix#>>
+	{
+		public static readonly Point<#=dimension#><#=suffix#> Zero = new Point<#=dimension#><#=suffix#>();
+		<#
+			for(int i = 0; i < dimension; i++)
+			{
+			#>
+		public <#=type#> <#=variables[i]#>;
+			<# } #>
+		public Point<#=dimension#><#=suffix#>(
+			<#=type#> <#=variables[0].ToLowerInvariant()#>
+			<#
+			for(int i = 1; i < dimension; i++)
+			{
+			#>, <#=type#> <#=variables[i].ToLowerInvariant()#>
+			<# } #>
+			)
+			{
+		<#
+			for(int i = 0; i < dimension; i++)
+			{
+			#>
+			this.<#=variables[i]#> = <#=variables[i].ToLowerInvariant()#>;
+			<# } #>
+		}
+
+		public override string ToString()
+		{
+			return $"(<#=string.Join(", ", variables.Take(dimension).Select((o) => "{" + o + "}"))#>)";
+		}
+		
+		public override int GetHashCode()
+		{
+			return this.<#=variables[0]#>.GetHashCode() <# for(int i = 1; i < dimension; i++){ #> ^ this.<#=variables[i]#>.GetHashCode() <# } #>;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj == null)
+				return false;
+
+			var other = obj as Point<#=dimension#><#=suffix#>?;
+
+			if (other == null)
+				return false;
+
+			return Equals(other.Value);
+		}
+
+		public bool Equals(Point<#=dimension#><#=suffix#> other)
+		{
+			return this == other;
+		}
+
+		#region tuple
+		[System.ComponentModel.Browsable(false)]
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+		public void Deconstruct(<#=string.Join(", ", Enumerable.Range(0, dimension).Select((s) => "out " + type + " " + variables[s].ToLowerInvariant()))#>)
+		{
+			<#
+			foreach(string s in variables.Take(dimension))
+			{
+			#>
+			<#=s.ToLowerInvariant()#> = <#=s#>;
+			<#}#>
+		}
+		
+		public static implicit operator Point<#=dimension#><#=suffix#>((<#=string.Join(", ", Enumerable.Range(0, dimension).Select((i) => type))#>) value)
+		{
+			return new Point<#=dimension#><#=suffix#>(<#=string.Join(", ", Enumerable.Range(1, dimension).Select((i) => "value.Item" + i))#>);
+		}
+		#endregion
+
+		#region static
+		public static Point<#=dimension#><#=suffix#> Lerp(Point<#=dimension#><#=suffix#> left, Point<#=dimension#><#=suffix#> right, <#=type#> offset)
+		{
+			if (offset < 0)
+				offset = 0;
+			if (offset > 1)
+				offset = 1;
+			return left + (right - left) * offset;
+		}
+
+		public static Point<#=dimension#><#=suffix#> Lerp(ref Point<#=dimension#><#=suffix#> left, ref Point<#=dimension#><#=suffix#> right, <#=type#> offset)
+		{
+			if (offset < 0)
+				offset = 0;
+			if (offset > 1)
+				offset = 1;
+			return left + (right - left) * offset;
+		}
+
+		public static void Lerp(ref Point<#=dimension#><#=suffix#> left, ref Point<#=dimension#><#=suffix#> right, <#=type#> offset, ref Point<#=dimension#><#=suffix#> result)
+		{
+			if (offset < 0)
+				offset = 0;
+			if (offset > 1)
+				offset = 1;
+			result = left + (right - left) * offset;
+		}
+
+		public static Point<#=dimension#><#=suffix#> operator+(Point<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return new Point<#=dimension#><#=suffix#>(
+				left.<#=variables[0]#> + right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left.<#=variables[i]#> + right.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		public static Vector<#=dimension#><#=suffix#> operator-(Point<#=dimension#><#=suffix#> left, Point<#=dimension#><#=suffix#> right)
+		{
+			return new Vector<#=dimension#><#=suffix#>(
+				left.<#=variables[0]#> - right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left.<#=variables[i]#> - right.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		public static Point<#=dimension#><#=suffix#> operator-(Point<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return new Point<#=dimension#><#=suffix#>(
+				left.<#=variables[0]#> - right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left.<#=variables[i]#> - right.<#=variables[i]#>
+				<# } #>
+			);
+		}
+		
+		public static Point<#=dimension#><#=suffix#> operator+(Point<#=dimension#><#=suffix#> value)
+		{
+			return value;
+		}
+
+		public static Point<#=dimension#><#=suffix#> operator-(Point<#=dimension#><#=suffix#> value)
+		{
+			return new Point<#=dimension#><#=suffix#>(
+				-value.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+					, -value.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		public static bool operator==(Point<#=dimension#><#=suffix#> left, Point<#=dimension#><#=suffix#> right)
+		{
+			return left.<#=variables[0]#> == right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				&& left.<#=variables[i]#> == right.<#=variables[i]#>
+				<# } #>;
+		}
+
+		public static bool operator!=(Point<#=dimension#><#=suffix#> left, Point<#=dimension#><#=suffix#> right)
+		{
+			return left.<#=variables[0]#> != right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				|| left.<#=variables[i]#> != right.<#=variables[i]#>
+				<# } #>;
+		}
+
+		public static explicit operator Point<#=dimension#><#=suffix#>(Vector<#=dimension#><#=suffix#> value)
+		{
+			return new Point<#=dimension#><#=suffix#>(
+				value.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+					, value.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		public static implicit operator Vector<#=dimension#><#=suffix#>(Point<#=dimension#><#=suffix#> value)
+		{
+			return new Point<#=dimension#><#=suffix#>(
+				value.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+					, value.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		<#
+		if (hasMatrix)
+		{
+		#>
+		public static void Transform(Matrix<#=dimension#>x<#=dimension#><#=suffix#> transform, Point<#=dimension#><#=suffix#>[] values)
+		{
+			if (values == null)
+				throw new ArgumentNullException("values");
+			for(int i = 0; i < values.Length; i++)
+				Transform(transform, ref values[i]);
+		}
+
+		public static void Transform(Matrix<#=dimension#>x<#=dimension#><#=suffix#> transform, ref Point<#=dimension#><#=suffix#> value)
+		{
+			value = new Point<#=dimension#><#=suffix#>(<#
+			for(int j = 0; j < dimension; j++)
+			{
+			if (j != 0) { #>, <# }
+			for(int i = 0; i < dimension; i++)
+			{ 
+			if (i != 0) { #> + <# } 
+				#>value.<#=variables[j]#> * transform.M<#=j+1#><#=i+1#><#
+			}
+			}
+		#>);
+		}
+		<#
+		foreach(int sdim in dimensions)
+		{
+			if (sdim == dimension)
+				continue;
+		#>
+			public static Point<#=sdim#><#=suffix#>[] Transform(Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Point<#=dimension#><#=suffix#>[] values)
+			{
+				if (values == null)
+					throw new ArgumentNullException("values");
+				Point<#=sdim#><#=suffix#>[] buffer = new Point<#=sdim#><#=suffix#>[values.Length];
+				for(int i = 0; i < values.Length; i++)
+					buffer[i] = Transform(transform, values[i]);
+				return buffer;
+			}
+
+			public static Point<#=sdim#><#=suffix#> Transform(Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Point<#=dimension#><#=suffix#> value)
+			{
+				return new Point<#=sdim#><#=suffix#>(<#
+				for(int j = 0; j < sdim; j++)
+				{
+				if (j != 0) { #>, <# }
+				for(int i = 0; i < dimension; i++)
+				{ 
+					if (i != 0) { #> + <# } 
+					#>value.<#=variables[i]#> * transform.M<#=j+1#><#=i+1#><# 
+				}
+				}
+			#>);
+			}
+
+
+			public static Point<#=sdim#><#=suffix#>[] Transform(ref Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Point<#=dimension#><#=suffix#>[] values)
+			{
+				if (values == null)
+					throw new ArgumentNullException("values");
+				Point<#=sdim#><#=suffix#>[] buffer = new Point<#=sdim#><#=suffix#>[values.Length];
+				for(int i = 0; i < values.Length; i++)
+					buffer[i] = Transform(ref transform, values[i]);
+				return buffer;
+			}
+
+			public static Point<#=sdim#><#=suffix#> Transform(ref Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Point<#=dimension#><#=suffix#> value)
+			{
+				return new Point<#=sdim#><#=suffix#>(<#
+				for(int j = 0; j < sdim; j++)
+				{
+				if (j != 0) { #>, <# }
+				for(int i = 0; i < dimension; i++)
+				{ 
+				if (i != 0) { #> + <# } 
+					#>value.<#=variables[i]#> * transform.M<#=j+1#><#=i+1#><#
+				}
+				}
+			#>);
+			}
+			<#
+			}
+			#>
+		<#
+		//homogenous coordinates
+		int dimp = dimension + 1;
+		if (dimp < dimensions.Max())
+		{
+		#>
+			public static Point<#=dimension#><#=suffix#> Transform(Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, Point<#=dimension#><#=suffix#> value)
+			{
+			return new Point<#=dimension#><#=suffix#>(<#
+			for(int i = 0; i < dimension; i++)
+			{
+				if (i != 0)
+					Write(", ");
+				for(int j = 0; j < dimension; j++)
+				{
+					Write("transform.M" + (i + 1).ToString() + (j+1).ToString() + " * value." + variables[j]);
+					Write(" + ");
+				}
+				Write("transform.M" + (i+1).ToString() + dimp.ToString());
+			}
+			Write(");");
+			#>
+			}
+
+			public static Point<#=dimension#><#=suffix#> Transform(Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, ref Point<#=dimension#><#=suffix#> value)
+			{
+			return new Point<#=dimension#><#=suffix#>(<#
+			for(int i = 0; i < dimension; i++)
+			{
+				if (i != 0)
+					Write(", ");
+				for(int j = 0; j < dimension; j++)
+				{
+					Write("transform.M" + (i + 1).ToString() + (j+1).ToString() + " * value." + variables[j]);
+					Write(" + ");
+				}
+				Write("transform.M" + (i+1).ToString() + dimp.ToString());
+			}
+			Write(");");
+			#>
+			}
+
+			public static Point<#=dimension#><#=suffix#> Transform(ref Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, ref Point<#=dimension#><#=suffix#> value)
+			{
+			return new Point<#=dimension#><#=suffix#>(<#
+			for(int i = 0; i < dimension; i++)
+			{
+				if (i != 0)
+					Write(", ");
+				for(int j = 0; j < dimension; j++)
+				{
+					Write("transform.M" + (i + 1).ToString() + (j+1).ToString() + " * value." + variables[j]);
+					Write(" + ");
+				}
+				Write("transform.M" + (i+1).ToString() + dimp.ToString());
+			}
+			Write(");");
+			#>
+			}
+
+			public static void Transform(Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, Point<#=dimension#><#=suffix#>[] values)
+			{
+				if (values == null)
+					throw new ArgumentNullException("values");
+				for(int i = 0; i < values.Length; i++)
+					Transform(ref transform, ref values[i]);
+			}
+		<#
+		}
+		#>
+		<#
+		}
+		#>
+		#endregion
+	}
+<#
+		}
+#>
+}

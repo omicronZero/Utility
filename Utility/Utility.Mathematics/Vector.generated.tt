@@ -1,0 +1,450 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+	int[] dimensions = new int[] {2, 3, 4};
+	string[] variables = new string[] {"X", "Y", "Z", "W"};
+
+	Tuple<string, string, string, bool>[] types = new Tuple<string, string, string, bool>[]
+		{
+			new Tuple<string, string, string, bool>("float", "f", "float", true), 
+			new Tuple<string, string, string, bool>("double", "r", "double", true),
+			//new Tuple<string, string, string, bool>("int", "i", "double", false)
+		};
+#>
+
+using System;
+
+namespace Utility.Mathematics
+{
+<#
+	foreach(var tp in types)
+		foreach(int dimension in dimensions)
+		{
+			if (dimension > variables.Length)
+				throw new ArgumentOutOfRangeException("dimension");
+			string  type = tp.Item1, suffix = tp.Item2, sqrscalar = tp.Item3;
+			bool hasMatrix = tp.Item4;
+#>
+	[System.Serializable()]
+	public partial struct Vector<#=dimension#><#=suffix#> : System.IEquatable<Vector<#=dimension#><#=suffix#>>
+	{
+		public static readonly Vector<#=dimension#><#=suffix#> Zero = new Vector<#=dimension#><#=suffix#>();
+		<#
+			for(int i = 0; i < dimension; i++)
+			{
+			#>
+		public <#=type#> <#=variables[i]#>;
+			<# } #>
+		public Vector<#=dimension#><#=suffix#>(
+			<#=type#> <#=variables[0].ToLowerInvariant()#>
+			<#
+			for(int i = 1; i < dimension; i++)
+			{
+			#>, <#=type#> <#=variables[i].ToLowerInvariant()#>
+			<# } #>
+			)
+			{
+		<#
+			for(int i = 0; i < dimension; i++)
+			{
+			#>
+			this.<#=variables[i]#> = <#=variables[i].ToLowerInvariant()#>;
+			<# } #>
+		}
+
+		<#
+		for(int i = 0; i < dimension; i++)
+		{
+		#>
+		public static Vector<#=dimension#><#=suffix#> Axis<#=variables[i]#> => new Vector<#=dimension#><#=suffix#>(<#=string.Join(", ", Enumerable.Range(0, dimension).Select((v) => v == i ? "1" : "0"))#>);
+		<#
+		}
+		#>
+
+		public override string ToString()
+		{
+			return $"(<#=string.Join(", ", variables.Take(dimension).Select((o) => "{" + o + "}"))#>)";
+		}
+
+		public <#=type#> Dot(Vector<#=dimension#><#=suffix#> other)
+		{
+			return this.<#=variables[0]#> * other.<#=variables[0]#> <# for(int i = 1; i < dimension; i++){ #> + this.<#=variables[i]#> * other.<#=variables[i]#> <# } #>;
+		}
+
+		public <#=type#> Dot(ref Vector<#=dimension#><#=suffix#> other)
+		{
+			return this.<#=variables[0]#> * other.<#=variables[0]#> <# for(int i = 1; i < dimension; i++){ #> + this.<#=variables[i]#> * other.<#=variables[i]#> <# } #>;
+		}
+
+		public <#=type#> LengthSq()
+		{
+			return this.<#=variables[0]#> * this.<#=variables[0]#> <# for(int i = 1; i < dimension; i++){ #> + this.<#=variables[i]#> * this.<#=variables[i]#> <# } #>;
+		}
+
+		public  <# if (sqrscalar.Length > 0) { #><#=sqrscalar#><# } else { #><#=type#> <# } #> Length()
+		{
+			return <# if (sqrscalar.Length > 0) { #>(<#=sqrscalar#>)<# } #>System.Math.Sqrt(LengthSq());
+		}
+
+		public override int GetHashCode()
+		{
+			return this.<#=variables[0]#>.GetHashCode() <# for(int i = 1; i < dimension; i++){ #> ^ this.<#=variables[i]#>.GetHashCode() <# } #>;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj == null)
+				return false;
+			Vector<#=dimension#><#=suffix#>? other = obj as Vector<#=dimension#><#=suffix#>?;
+			if (other == null)
+				return false;
+			return Equals(other.Value);
+		}
+
+		public bool Equals(Vector<#=dimension#><#=suffix#> other)
+		{
+			return this == other;
+		}
+
+<#
+		if (suffix != "i")
+		{
+#>
+		public void Normalize()
+		{
+			this = this / Length();
+		}
+<#
+		}
+#>
+
+		#region tuple
+		[System.ComponentModel.Browsable(false)]
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+		public void Deconstruct(<#=string.Join(", ", Enumerable.Range(0, dimension).Select((s) => "out " + type + " " + variables[s].ToLowerInvariant()))#>)
+		{
+			<#
+			foreach(string s in variables.Take(dimension))
+			{
+			#>
+			<#=s.ToLowerInvariant()#> = <#=s#>;
+			<#}#>
+		}
+		
+		public static implicit operator Vector<#=dimension#><#=suffix#>((<#=string.Join(", ", Enumerable.Range(0, dimension).Select((i) => type))#>) value)
+		{
+			return new Vector<#=dimension#><#=suffix#>(<#=string.Join(", ", Enumerable.Range(1, dimension).Select((i) => "value.Item" + i))#>);
+		}
+		#endregion
+
+		#region static
+		public static Vector<#=dimension#><#=suffix#> Lerp(Vector<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right, <#=type#> offset)
+		{
+			if (offset < 0)
+				offset = 0;
+			if (offset > 1)
+				offset = 1;
+			return left + (right - left) * offset;
+		}
+
+		public static Vector<#=dimension#><#=suffix#> Lerp(ref Vector<#=dimension#><#=suffix#> left, ref Vector<#=dimension#><#=suffix#> right, <#=type#> offset)
+		{
+			if (offset < 0)
+				offset = 0;
+			if (offset > 1)
+				offset = 1;
+			return left + (right - left) * offset;
+		}
+
+		public static void Lerp(ref Vector<#=dimension#><#=suffix#> left, ref Vector<#=dimension#><#=suffix#> right, <#=type#> offset,  ref Vector<#=dimension#><#=suffix#> result)
+		{
+			if (offset < 0)
+				offset = 0;
+			if (offset > 1)
+				offset = 1;
+			result = left + (right - left) * offset;
+		}
+
+		public <#=type#> Dot(Vector<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return left.<#=variables[0]#> * right.<#=variables[0]#> <# for(int i = 1; i < dimension; i++){ #> + left.<#=variables[i]#> * right.<#=variables[i]#> <# } #>;
+		}
+
+		public <#=type#> Dot(ref Vector<#=dimension#><#=suffix#> left, ref Vector<#=dimension#><#=suffix#> right)
+		{
+			return left.<#=variables[0]#> * right.<#=variables[0]#> <# for(int i = 1; i < dimension; i++){ #> + left.<#=variables[i]#> * right.<#=variables[i]#> <# } #>;
+		}
+
+		public static Vector<#=dimension#><#=suffix#> operator+(Vector<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return new Vector<#=dimension#><#=suffix#>(
+				left.<#=variables[0]#> + right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left.<#=variables[i]#> + right.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		public static Vector<#=dimension#><#=suffix#> operator-(Vector<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return new Vector<#=dimension#><#=suffix#>(
+				left.<#=variables[0]#> - right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left.<#=variables[i]#> - right.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		public static Vector<#=dimension#><#=suffix#> operator*(Vector<#=dimension#><#=suffix#> left, <#=type#> right)
+		{
+			return new Vector<#=dimension#><#=suffix#>(
+				left.<#=variables[0]#> * right
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left.<#=variables[i]#> * right
+				<# } #>
+			);
+		}
+
+		public static Vector<#=dimension#><#=suffix#> operator/(Vector<#=dimension#><#=suffix#> left, <#=type#> right)
+		{
+			return new Vector<#=dimension#><#=suffix#>(
+				left.<#=variables[0]#> * right
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left.<#=variables[i]#> / right
+				<# } #>
+			);
+		}
+
+		public static Vector<#=dimension#><#=suffix#> operator*(<#=type#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return new Vector<#=dimension#><#=suffix#>(
+				left * right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				, left * right.<#=variables[i]#>
+				<# } #>
+			);
+		}
+		
+		public static Vector<#=dimension#><#=suffix#> operator+(Vector<#=dimension#><#=suffix#> value)
+		{
+			return value;
+		}
+
+		public static Vector<#=dimension#><#=suffix#> operator-(Vector<#=dimension#><#=suffix#> value)
+		{
+			return new Vector<#=dimension#><#=suffix#>(
+				-value.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+					, -value.<#=variables[i]#>
+				<# } #>
+			);
+		}
+
+		public static bool operator==(Vector<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return left.<#=variables[0]#> == right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				&& left.<#=variables[i]#> == right.<#=variables[i]#>
+				<# } #>;
+		}
+
+		public static bool operator!=(Vector<#=dimension#><#=suffix#> left, Vector<#=dimension#><#=suffix#> right)
+		{
+			return left.<#=variables[0]#> != right.<#=variables[0]#>
+				<#
+				for(int i = 1; i < dimension; i++)
+				{
+				#>
+				|| left.<#=variables[i]#> != right.<#=variables[i]#>
+				<# } #>;
+		}
+		<#
+		if (hasMatrix)
+		{
+		#>
+		public static void Transform(Matrix<#=dimension#>x<#=dimension#><#=suffix#> transform, Vector<#=dimension#><#=suffix#>[] values)
+		{
+			if (values == null)
+				throw new ArgumentNullException("values");
+			for(int i = 0; i < values.Length; i++)
+				Transform(transform, ref values[i]);
+		}
+
+		public static void Transform(Matrix<#=dimension#>x<#=dimension#><#=suffix#> transform, ref Vector<#=dimension#><#=suffix#> value)
+		{
+			value = new Vector<#=dimension#><#=suffix#>(<#
+			for(int j = 0; j < dimension; j++)
+			{
+			if (j != 0) { #>, <# }
+			for(int i = 0; i < dimension; i++)
+			{ 
+			if (i != 0) { #> + <# } 
+				#>value.<#=variables[j]#> * transform.M<#=j+1#><#=i+1#><#
+			}
+			}
+		#>);
+		}
+		<#
+		foreach(int sdim in dimensions)
+		{
+			if (sdim == dimension)
+				continue;
+		#>
+			public static Vector<#=sdim#><#=suffix#>[] Transform(Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Vector<#=dimension#><#=suffix#>[] values)
+			{
+				if (values == null)
+					throw new ArgumentNullException("values");
+				Vector<#=sdim#><#=suffix#>[] buffer = new Vector<#=sdim#><#=suffix#>[values.Length];
+				for(int i = 0; i < values.Length; i++)
+					buffer[i] = Transform(transform, values[i]);
+				return buffer;
+			}
+
+			public static Vector<#=sdim#><#=suffix#> Transform(Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Vector<#=dimension#><#=suffix#> value)
+			{
+				return new Vector<#=sdim#><#=suffix#>(<#
+				for(int j = 0; j < sdim; j++)
+				{
+				if (j != 0) { #>, <# }
+				for(int i = 0; i < dimension; i++)
+				{ 
+					if (i != 0) { #> + <# } 
+					#>value.<#=variables[i]#> * transform.M<#=j+1#><#=i+1#><# 
+				}
+				}
+			#>);
+			}
+
+
+			public static Vector<#=sdim#><#=suffix#>[] Transform(ref Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Vector<#=dimension#><#=suffix#>[] values)
+			{
+				if (values == null)
+					throw new ArgumentNullException("values");
+				Vector<#=sdim#><#=suffix#>[] buffer = new Vector<#=sdim#><#=suffix#>[values.Length];
+				for(int i = 0; i < values.Length; i++)
+					buffer[i] = Transform(ref transform, values[i]);
+				return buffer;
+			}
+
+			public static Vector<#=sdim#><#=suffix#> Transform(ref Matrix<#=sdim#>x<#=dimension#><#=suffix#> transform, Vector<#=dimension#><#=suffix#> value)
+			{
+				return new Vector<#=sdim#><#=suffix#>(<#
+				for(int j = 0; j < sdim; j++)
+				{
+				if (j != 0) { #>, <# }
+				for(int i = 0; i < dimension; i++)
+				{ 
+				if (i != 0) { #> + <# } 
+					#>value.<#=variables[i]#> * transform.M<#=j+1#><#=i+1#><#
+				}
+				}
+			#>);
+			}
+			<#
+			}
+			#>
+		<#
+		//homogenous coordinates
+		int dimp = dimension + 1;
+		if (dimp < dimensions.Max())
+		{
+		#>
+			public static Vector<#=dimension#><#=suffix#> Transform(Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, Vector<#=dimension#><#=suffix#> value)
+			{
+			return new Vector<#=dimension#><#=suffix#>(<#
+			for(int i = 0; i < dimension; i++)
+			{
+				if (i != 0)
+					Write(", ");
+				for(int j = 0; j < dimension; j++)
+				{
+					Write("transform.M" + (i + 1).ToString() + (j+1).ToString() + " * value." + variables[j]);
+					Write(" + ");
+				}
+				Write("transform.M" + (i+1).ToString() + dimp.ToString());
+			}
+			Write(");");
+			#>
+			}
+
+			public static Vector<#=dimension#><#=suffix#> Transform(Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, ref Vector<#=dimension#><#=suffix#> value)
+			{
+			return new Vector<#=dimension#><#=suffix#>(<#
+			for(int i = 0; i < dimension; i++)
+			{
+				if (i != 0)
+					Write(", ");
+				for(int j = 0; j < dimension; j++)
+				{
+					Write("transform.M" + (i + 1).ToString() + (j+1).ToString() + " * value." + variables[j]);
+					Write(" + ");
+				}
+				Write("transform.M" + (i+1).ToString() + dimp.ToString());
+			}
+			Write(");");
+			#>
+			}
+
+			public static Vector<#=dimension#><#=suffix#> Transform(ref Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, ref Vector<#=dimension#><#=suffix#> value)
+			{
+			return new Vector<#=dimension#><#=suffix#>(<#
+			for(int i = 0; i < dimension; i++)
+			{
+				if (i != 0)
+					Write(", ");
+				for(int j = 0; j < dimension; j++)
+				{
+					Write("transform.M" + (i + 1).ToString() + (j+1).ToString() + " * value." + variables[j]);
+					Write(" + ");
+				}
+				Write("transform.M" + (i+1).ToString() + dimp.ToString());
+			}
+			Write(");");
+			#>
+			}
+
+			public static void Transform(Matrix<#=dimension#>x<#=dimp#><#=suffix#> transform, Vector<#=dimension#><#=suffix#>[] values)
+			{
+				if (values == null)
+					throw new ArgumentNullException("values");
+				for(int i = 0; i < values.Length; i++)
+					Transform(ref transform, ref values[i]);
+			}
+		<#
+		}
+		#>
+		<#
+		}
+		#>
+		#endregion
+	}
+<#
+		}
+#>
+}

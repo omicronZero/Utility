@@ -1,0 +1,221 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using System;
+using System.Collections.Generic;
+
+namespace Utility
+{
+
+<#
+	string[] primitiveTypes =	  new string[] {"char",		"short",	"ushort",	"int",		"uint",		"long",		"ulong",	"float",	"double",	"decimal",	"DateTime"};
+	string[] primitiveTypeNames = new string[] {"Char",		"Int16",	"UInt16",	"Int32",	"UInt32",	"Int64",	"UInt64",	"Single",	"Double",	"Decimal",	"DateTime"};
+	string[] spanTypes =   	      new string[] {"int",		"short",	"ushort",	"int",		"uint",		"long",		"ulong",	"float",	"double",	"decimal",	"TimeSpan"};
+	bool[] discrete =				new bool[] {true,		true,		true,		true,		true,		true,		true,		false,		false,		false,		true};
+	bool[] signed =					new bool[] {true,		true,		false,		true,		false,		true,		false,		true,		true,		true,		false};
+	//bool[] op =					new bool[] {"explicit",	"explicit",	"explicit",	"implicit",	"explicit",	"implicit",	"explicit",	"implicit",	"implicit",	"implicit",	null};
+
+	for(int i = 0; i < primitiveTypes.Length; i++)
+	{
+		string nm = primitiveTypeNames[i];
+		string tp = primitiveTypes[i];
+		string span = spanTypes[i];
+		bool isDiscrete = discrete[i];
+	#>
+	[Serializable]
+	public partial struct Range<#=nm#> : IEquatable<Range<#=nm#>>
+	{
+		public <#=tp#> Start { get; set; }
+		public <#=tp#> End { get; set; }
+		public <#=span#> Span => (<#=span#>)(End - Start);
+
+		public Range<#=nm#>(<#=tp#> start, <#=tp#> end)
+		{
+			Start = start;
+			End = end;
+		}
+
+		public bool IsEmpty
+		{
+			get { return Start == End; }
+		}
+
+		public bool Contains(<#=tp#> value)
+		{
+			return Start <= value && value <= End;
+		}
+
+		public void Normalize()
+		{
+			this = new Range<#=nm#>(Start < End ? Start : End, Start < End ? End : Start);
+		}
+
+		public bool Contains(Range<#=nm#> other)
+		{
+			return Start <= other.Start && other.End <= End;
+		}
+
+		public bool Contains(<#=tp#> start, <#=tp#> end)
+		{
+			return Start <= start && end <= End;
+		}
+
+		public bool Intersects(Range<#=nm#> other)
+		{
+			return Start <= other.End && other.Start <= End;
+		}
+
+		public bool Intersects(<#=tp#> start, <#=tp#> end)
+		{
+			return Start <= end && start <= End;
+		}
+
+		public void Union(Range<#=nm#> other)
+		{
+			this = new Range<#=nm#>(Start < other.Start ? Start : other.Start, End > other.End ? End : other.End);
+		}
+
+		public void Union(<#=tp#> start, <#=tp#> end)
+		{
+			this = new Range<#=nm#>(Start < start ? Start : start, End > end ? End : end);
+		}
+
+		public void Union(<#=tp#> value)
+		{
+			if (value < Start)
+				Start = value;
+
+			if (value > End)
+				End = value;
+		}
+
+		public override int GetHashCode()
+		{
+			return Start.GetHashCode() ^ ~End.GetHashCode();
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj == null)
+				return false;
+			
+			var o = obj as Range<#=nm#>?;
+
+			if (o == null)
+				return false;
+
+			return Equals(o.Value);
+		}
+
+		public override string ToString()
+		{
+			if (End < Start)
+				return "{}";
+			else if (Start == End)
+				return $"{{{Start}}}";
+			else
+<#
+			if (isDiscrete)
+			{
+#>
+				return $"{{{Start}, ..., {End}}}";
+<#
+			}
+			else
+			{
+#>
+				return $"[{Start}, ..., {End}]";
+<#
+			}
+#>
+		}
+
+		public void Intersect(Range<#=nm#> other)
+		{
+			this = new Range<#=nm#>(Start < other.Start ? other.Start : Start, End > other.End ? other.End : End);
+		}
+
+		public void Intersect(<#=tp#> start, <#=tp#> end)
+		{
+			this = new Range<#=nm#>(Start < start ? start : Start, End > end ? end : End);
+		}
+
+		public bool Equals(Range<#=nm#> other)
+		{
+			return Start == other.Start && End == other.End;
+		}
+
+		public static implicit operator Range<<#=tp#>>(Range<#=nm#> range)
+		{
+			return new Range<<#=tp#>>(range.Start, range.End);
+		}
+
+		public static implicit operator Range<#=nm#>(Range<<#=tp#>> range)
+		{
+			return new Range<#=nm#>(range.Start, range.End);
+		}
+
+		public static bool operator==(Range<#=nm#> left, Range<#=nm#> right)
+		{
+			return left.Start == right.Start && left.End == right.End;
+		}
+
+		public static bool operator!=(Range<#=nm#> left, Range<#=nm#> right)
+		{
+			return left.Start != right.Start || left.End != right.End;
+		}
+
+        public static Range<#=nm#> CreateNormalized(<#=tp#> first, <#=tp#> second)
+        {
+            return new Range<#=nm#>(first <= second ? first : second, first >= second ? first : second);
+        }
+
+		public static Range<#=nm#> CreateSpanning(<#=tp#> start, <#=span#> width)
+		{
+		<#
+		if (signed[i])
+		{
+		#>
+			if (width < 0)
+				return new Range<#=nm#>((<#=tp#>)(start + width), (<#=tp#>)(start - 2 * width));
+			else
+			<#
+			}
+			#>
+				return new Range<#=nm#>(start, (<#=tp#>)(start + width));
+		}
+
+        public static Range<#=nm#> FromEnumerable(IEnumerable<<#=tp#>> enumerable)
+        {
+            <#=tp#> start;
+            <#=tp#> end;
+
+            using (var enr = enumerable.GetEnumerator())
+            {
+                if (!enr.MoveNext())
+                {
+                    throw new ArgumentException("The specified enumeration was empty.", nameof(enumerable));
+                }
+
+                start = enr.Current;
+                end = enr.Current;
+
+                while (enr.MoveNext())
+                {
+                    if (enr.Current < start)
+                        start = enr.Current;
+
+                    if (enr.Current > end)
+                        end = enr.Current;
+                }
+            }
+
+            return new Range<#=nm#>(start, end);
+        }
+	}
+	<#
+	}
+#>
+}

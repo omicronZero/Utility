@@ -1,0 +1,282 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+using System;
+
+namespace Utility.Mathematics
+{
+<#
+	string[] types = new string[]{"F|f|float", "R|r|double"};
+
+	foreach(var tp in types.Select((o) => o.Split('|')))
+	{
+	string t = tp[0];
+	string lt = tp[1];
+	string T = tp[2];
+	string cast = lt == "r" ? "" : $"({T})";
+#>    [Serializable()]
+    public partial struct Quaternion<#=t#> : IEquatable<Quaternion<#=t#>>
+    {
+        /// <summary>
+        /// The real part of the quaternion.
+        /// </summary>
+        public <#=T#> S;
+        /// <summary>
+        /// The x component of the imaginary part of the quaternion.
+        /// </summary>
+        public <#=T#> X;
+        /// <summary>
+        /// The y component of the imaginary part of the quaternion.
+        /// </summary>
+        public <#=T#> Y;
+        /// <summary>
+        /// The z component of the imaginary part of the quaternion.
+        /// </summary>
+        public <#=T#> Z;
+
+        public Quaternion<#=t#>(<#=T#> s, Vector3<#=lt#> v)
+            : this(s, v.X, v.Y, v.Z)
+        { }
+
+        public Quaternion<#=t#>(<#=T#> s, <#=T#> x, <#=T#> y, <#=T#> z)
+        {
+            S = s;
+            X = x;
+            Y = y;
+            Z = z;
+        }
+
+        /// <summary>
+        /// Returns the imaginary part of the quaternion.
+        /// </summary>
+        public Vector3<#=lt#> V
+        {
+            get { return new Vector3<#=lt#>(X, Y, Z); }
+        }
+
+        public void Invert()
+        {
+            this = 1 / NormSq() * ~this;
+        }
+
+        public <#=T#> NormSq()
+        {
+            return S * S + X * X + Y * Y + Z * Z;
+        }
+
+        public <#=T#> Norm()
+        {
+            return (<#=T#>)System.Math.Sqrt(NormSq());
+        }
+
+		public void Normalize()
+		{
+			this = this / Norm();
+		}
+
+		public double GetAngle()
+		{
+			return System.Math.Acos(S / (Norm() * 2));
+		}
+
+		public double GetAngleNormalized()
+		{
+			return System.Math.Acos(S / 2);
+		}
+
+		public void Transform(Vector3<#=lt#>[] values, int index, int count)
+		{
+			var p = this;
+			p.Normalize();
+			p.TransformNormalized(values, index, count);
+		}
+
+		public Vector3<#=lt#> Transform(Vector3<#=lt#> value)
+		{
+			var p = this;
+			p.Normalize();
+			return (p * new Quaternion<#=t#>(0, value) * ~p).V;
+		}
+
+		public void TransformNormalized(Vector3<#=lt#>[] values, int index, int count)
+		{
+			if (values == null)
+				throw new ArgumentNullException(nameof(values));
+			Util.ValidateRange(index, count, values.Length);
+			
+			int d = index + count;
+			for(int i = index; i < d; i++)
+				values[i] = Transform(values[i]);
+		}
+
+		public Vector3<#=lt#> TransformNormalized(Vector3<#=lt#> value)
+		{
+			return (this * new Quaternion<#=t#>(0, value) * ~this).V;
+		}
+
+        public override bool Equals(object obj)
+        {
+			if (obj == null)
+				return false;
+
+			var q = obj as Quaternion<#=t#>?;
+
+			if (q == null)
+				return false;
+
+			return Equals(q.Value);
+        }
+
+        public bool Equals(Quaternion<#=t#> other)
+        {
+            return S == other.S && X == other.X && Y == other.Y && Z == other.Z;
+        }
+
+        public override int GetHashCode()
+        {
+            return S.GetHashCode() ^ X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"({S}, {X}, {Y}, {Z})";
+        }
+
+		public static bool operator==(Quaternion<#=t#> left, Quaternion<#=t#> right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator!=(Quaternion<#=t#> left, Quaternion<#=t#> right)
+		{
+			return !left.Equals(right);
+		}
+
+        public static <#=T#> Dot(Quaternion<#=t#> left, Quaternion<#=t#> right)
+        {
+            return left.S * right.S + left.X * right.X + left.Y * right.Y + left.Z * right.Z;
+        }
+
+        public static Quaternion<#=t#> Cross(Quaternion<#=t#> left, Quaternion<#=t#> right)
+        {
+            return new Quaternion<#=t#>(0, Vector3<#=lt#>.Cross(left.V, right.V));
+        }
+
+        public static Quaternion<#=t#> operator +(Quaternion<#=t#> left, Quaternion<#=t#> right)
+        {
+            return new Quaternion<#=t#>(left.S + right.S, left.X + right.X, left.Y + right.Y, left.Z + right.Z);
+        }
+
+        public static Quaternion<#=t#> operator -(Quaternion<#=t#> left, Quaternion<#=t#> right)
+        {
+            return new Quaternion<#=t#>(left.S - right.S, left.X - right.X, left.Y - right.Y, left.Z - right.Z);
+        }
+
+        public static Quaternion<#=t#> operator *(Quaternion<#=t#> left, Quaternion<#=t#> right)
+        {
+            return new Quaternion<#=t#>(left.S * right.S - left.X * right.X - left.Y * right.Y - left.Z * right.Z,
+										left.S * right.X + left.X * right.S + left.Y * right.Z + left.Z * right.Y,
+										left.S * right.Y + left.X * right.Z + left.Y * right.S + left.Z * right.X,
+										left.S * right.Z + left.X * right.Y + left.Y * right.X + left.Z * right.S);
+        }
+
+        public static Quaternion<#=t#> operator *(<#=T#> left, Quaternion<#=t#> right)
+        {
+            return new Quaternion<#=t#>(left * right.S, left * right.X, left * right.Y, left * right.Z);
+        }
+
+        public static Quaternion<#=t#> operator *(Quaternion<#=t#> left, <#=T#> right)
+        {
+            return new Quaternion<#=t#>(left.S * right, left.X * right, left.Y * right, left.Z * right);
+        }
+
+        public static Quaternion<#=t#> operator /(Quaternion<#=t#> left, <#=T#> right)
+        {
+            return new Quaternion<#=t#>(left.S / right, left.X / right, left.Y / right, left.Z / right);
+        }
+
+        public static Quaternion<#=t#> operator ~(Quaternion<#=t#> value)
+        {
+            return new Quaternion<#=t#>(value.S, -value.V);
+        }
+
+		public static explicit operator Quaternion<#=t#>(<#=T#> value)
+		{
+			return new Quaternion<#=t#>(value, 0, 0, 0);
+		}
+
+		public static explicit operator Quaternion<#=t#>(Vector4<#=lt#> value)
+		{
+			return new Quaternion<#=t#>(value.W, value.X, value.Y, value.Z);
+		}
+
+		public static explicit operator Vector4<#=lt#>(Quaternion<#=t#> value)
+		{
+			return new Vector4<#=lt#>(value.X, value.Y, value.Z, value.S);
+		}
+
+		public static Quaternion<#=t#> FromYawPitchRoll(<#=T#> yaw, <#=T#> pitch, <#=T#> roll)
+		{    
+			<#//Roll ph: around Z-Axis, Pitch th: around X-Axis, Yaw ps: around Y-Axis#>
+
+			<#=T#> sps = <#=cast#>System.Math.Sin(yaw / 2);
+			<#=T#> sth = <#=cast#>System.Math.Sin(pitch / 2);
+			<#=T#> sph = <#=cast#>System.Math.Sin(roll / 2);
+			<#=T#> cps = <#=cast#>System.Math.Cos(yaw / 2);
+			<#=T#> cth = <#=cast#>System.Math.Cos(pitch / 2);
+			<#=T#> cph = <#=cast#>System.Math.Cos(roll / 2);
+
+			return new Quaternion<#=t#>(cph * cth * cps + sph * sth * sps,
+									    sph * cth * cps - cph * sth * sps,
+										cph * sth * cps + sph * cth * sps,
+										cph * cth * sps - sph * sth * cps);
+		}
+
+		public Vector3<#=lt#> YawPitchRollNormalized
+		{
+			get
+			{
+				return new Vector3<#=lt#>(<#=cast#>System.Math.Atan2(2 * (S * Z + X * Y), 1 - 2 * (Y * Y + Z * Z)),
+										  <#=cast#>System.Math.Asin(2 * (S * Y + Z * X)),
+										  <#=cast#>System.Math.Atan2(2 * (S * X + Y * Z), 1 - 2 * (X * X + Y * Y)));
+			}
+		}
+
+		public Vector3<#=lt#> YawPitchRoll
+		{
+			get
+			{
+				var tq = this;
+				tq.Normalize();
+				return tq.YawPitchRollNormalized;
+			}
+		}
+
+		//TODO: Important: Test. This method is not proved
+		public static Quaternion<#=t#> LookAt(Vector3<#=lt#> direction)
+		{
+			<#//roll (phi) = 0#>
+
+			double x = (double)direction.Z / direction.X;
+			double y = (double)direction.Z / direction.Y;
+
+			<#=T#> cth = <#=cast#>(1 / (System.Math.Sqrt(x * x + 1) + 1));
+			<#=T#> sth = <#=cast#>(x / 2 / System.Math.Sqrt(x * x + 1) / cth);
+			<#=T#> cps = <#=cast#>(1 / (System.Math.Sqrt(y * y + 1) + 1));
+			<#=T#> sps = <#=cast#>(y / 2 / System.Math.Sqrt(y * y + 1) / cps);
+
+			return new Quaternion<#=t#>(cth * cps, - sth * sps, sth * cps, cth * sps);
+		}
+    }
+
+
+<#
+	
+	}
+#>
+
+}

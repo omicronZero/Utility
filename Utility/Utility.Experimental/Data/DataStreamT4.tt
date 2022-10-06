@@ -1,0 +1,63 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+	string[] types = new string[]{"sbyte", "short", "ushort", "int", "uint", "long", "ulong", "float", "double", "char"};
+	string[] readNames = new string[]{"SByte", "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64", "Single", "Double", "Char"};
+#>
+
+using System;
+
+namespace Utility.Data
+{
+	public unsafe partial class DataStream
+	{
+		<#
+		int i = 0;
+		foreach(string type in types)
+		{
+			string nm = readNames[i++];
+
+		#>
+		public void Write(<#=type#>[] buffer, int index, int count)
+		{
+			Util.ValidateNamedRange(buffer, index, count, arrayName: nameof(buffer));
+
+			fixed(<#=type#>* ptr = buffer)
+				Write(new IntPtr(ptr + index), count * sizeof(<#=type#>));
+		}
+		
+		public void Write(<#=type#>[] buffer)
+		{
+			if (buffer == null)
+				throw new ArgumentNullException(nameof(buffer));
+
+			Write(buffer, 0, buffer.Length);
+		}
+
+		public void Write(<#=type#> value)
+		{
+			Write(new IntPtr(&value), sizeof(<#=type#>));
+		}
+
+        public AssembledObject<<#=type#>> Read<#=nm#>s(int count)
+        {
+			if (count < 0)
+				throw new ArgumentOutOfRangeException(nameof(count), count, "Non-negative count expected.");
+
+            return new AssembledObject<<#=type#>>(count);
+        }
+
+        public AssembledObject<<#=type#>> Read<#=nm#>()
+        {
+			return Read<#=nm#>s(1);
+        }
+		<#
+		}
+		#>
+	}
+}

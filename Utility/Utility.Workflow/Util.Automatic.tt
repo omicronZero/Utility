@@ -1,0 +1,57 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using System;
+using System.Collections.Generic;
+
+namespace Utility
+{
+	static partial class Util
+	{
+<#
+	for(int i = 0; i < 8; i++)
+	{
+		string genArgs = i == 0 ? string.Empty : string.Join(", ", Enumerable.Range(1, i).Select((j) => "T" + j));
+		string tpparam = string.Join(", ", Enumerable.Range(1, i).Select((j) => "T" + j + " param" + j));
+		string param = string.Join(", ", Enumerable.Range(1, i).Select((j) => "param" + j));
+
+		string genargsspl = genArgs + (genArgs.Length > 0 ? ", " : string.Empty);
+		string genargsv = genArgs.Length > 0 ? "<" + genArgs + ">" : string.Empty;
+	#>
+
+        public static TReturn CallSynchronized<<#=genargsspl#>TReturn>(object syncObject, <#=tpparam + (tpparam.Length > 0 ? ", " : string.Empty)#>Func<<#=genargsspl#>TReturn> func)
+        {
+            if (syncObject != null)
+            {
+                lock (syncObject)
+                {
+                    return func(<#=param#>);
+                }
+            }
+            else
+            {
+                return func(<#=param#>);
+            }
+        }
+
+        public static void CallSynchronized<#=genargsv#>(object syncObject, <#=tpparam + (tpparam.Length > 0 ? ", " : string.Empty)#>Action<#=genargsv#> handler)
+        {
+            if (syncObject != null)
+            {
+                lock (syncObject)
+                {
+                    handler(<#=param#>);
+                }
+            }
+            else
+            {
+                handler(<#=param#>);
+            }
+        }
+		<#
+	}
+		#>
+	}
+}

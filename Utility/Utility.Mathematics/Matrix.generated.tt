@@ -1,0 +1,425 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+using System;
+
+namespace Utility.Mathematics
+{
+<#
+int[] dimensions = new int[] {2, 3, 4};
+string[] vector = new string[]{"X", "Y", "Z", "W"};
+string[] types = new string[]{"f|float", "r|double"};
+
+foreach(string tp in types)
+{
+	string suffix, type;
+	{
+		string[] split = tp.Split('|');
+		suffix = split[0];
+		type = split[1];
+	}
+	foreach(int row in dimensions)
+	foreach(int column in dimensions)
+	{
+#>
+
+	[System.Serializable()]
+	public partial struct Matrix<#=row#>x<#=column#><#=suffix#> : System.IEquatable<Matrix<#=row#>x<#=column#><#=suffix#>>
+	{
+		public static readonly Matrix<#=row#>x<#=column#><#=suffix#> Zero = new Matrix<#=row#>x<#=column#><#=suffix#>();
+
+		<#
+		if (row == column)
+		{
+		#>
+		public static readonly Matrix<#=row#>x<#=column#><#=suffix#> Identity = new Matrix<#=row#>x<#=column#><#=suffix#>(<#
+			for(int i = 0; i < row; i++)
+			for(int j = 0; j < column; j++)
+			{
+				if (i != 0 || j != 0)
+					Write(", ");
+				Write(i == j ? "1" : "0");
+			}
+		#>);
+
+		<#
+		}
+		#>
+
+		public <#=type#> M11 <#
+			for(int i = 0; i < row; i++) for(int j = 0; j < column; j++) if (i != 0 || j != 0) { #> , M<#=i+1#><#=j+1#> <# } #> ;
+
+		public Matrix<#=row#>x<#=column#><#=suffix#>( <#=type#> m11 <#for(int i = 0; i < row; i++) for(int j = 0; j < column; j++) if (i != 0 || j != 0) { #> ,<#=type#> m<#=i+1#><#=j+1#> <# } #>)
+		{
+		<#
+			for(int i = 0; i < row; i++)
+			for(int j = 0; j < column; j++)
+			{
+			#>
+			this.M<#=i+1#><#=j+1#> = m<#=i+1#><#=j+1#>;
+			<#
+			}
+		#>
+		}
+
+		public Matrix<#=column#>x<#=row#><#=suffix#> Transpose()
+		{
+			return new Matrix<#=column#>x<#=row#><#=suffix#>(
+				M11 <#for(int i = 0; i < column; i++) for(int j = 0; j < row; j++) if (i != 0 || j != 0) { #>, M<#=j+1#><#=i+1#> <# } #>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> operator*(Matrix<#=row#>x<#=column#><#=suffix#> left, <#=type#> right)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+		<#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>,<# }
+				#> left.M<#=i+1#><#=j+1#> * right <#
+				}
+		#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> operator*(<#=type#> left, Matrix<#=row#>x<#=column#><#=suffix#> right)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+		<#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>,<# }
+				#> left * right.M<#=i+1#><#=j+1#> <#
+				}
+		#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> operator/(Matrix<#=row#>x<#=column#><#=suffix#> left, <#=type#> right)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+		<#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>,<# }
+				#> left.M<#=i+1#><#=j+1#> / right <#
+				}
+		#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> operator+(Matrix<#=row#>x<#=column#><#=suffix#> left, Matrix<#=row#>x<#=column#><#=suffix#> right)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+		<#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>,<# }
+				#> left.M<#=i+1#><#=j+1#> - right.M<#=i+1#><#=j+1#> <#
+				}
+		#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> operator-(Matrix<#=row#>x<#=column#><#=suffix#> left, Matrix<#=row#>x<#=column#><#=suffix#> right)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+		<#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>,<# }
+				#> left.M<#=i+1#><#=j+1#> - right.M<#=i+1#><#=j+1#> <#
+				}
+		#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> operator+(Matrix<#=row#>x<#=column#><#=suffix#> value)
+		{
+			return value;
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> operator-(Matrix<#=row#>x<#=column#><#=suffix#> value)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+		<#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>,<# }
+				#>-value.M<#=i+1#><#=j+1#> <#
+				}
+		#>
+			);
+		}
+		
+		public static bool operator==(Matrix<#=row#>x<#=column#><#=suffix#> left, Matrix<#=row#>x<#=column#><#=suffix#> right)
+		{
+			return <#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>&&<# }
+				#> left.M<#=i+1#><#=j+1#> == right.M<#=i+1#><#=j+1#> <#
+				}
+		#>;
+		}
+		
+		public static bool operator!=(Matrix<#=row#>x<#=column#><#=suffix#> left, Matrix<#=row#>x<#=column#><#=suffix#> right)
+		{
+			return <#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{
+				if (i != 0 || j != 0) { #>||<# }
+				#> left.M<#=i+1#><#=j+1#> != right.M<#=i+1#><#=j+1#> <#
+				}
+		#>;
+		}
+
+		public override int GetHashCode()
+		{
+			return <#= string.Join(" ^ ", Enumerable.Range(1, row).SelectMany((i) => Enumerable.Range(1, column).Select((j) => "M" + i + j + ".GetHashCode()"))) #>;
+		}
+
+		public override bool Equals(object obj)
+		{
+			return obj != null && obj is Matrix<#=row#>x<#=column#><#=suffix#> m && Equals(m);
+		}
+
+		public bool Equals(Matrix<#=row#>x<#=column#><#=suffix#> other)
+		{
+			return this == other;
+		}
+
+		public unsafe <#=type#> this[int row, int column]
+		{
+			get 
+			{
+				CheckCoordinate(row, column);
+
+				Matrix<#=row#>x<#=column#><#=suffix#> m = this;
+
+				return ((<#=type#>*)&m)[row * <#=row#> + column];
+				
+			}
+			set 
+			{ 
+				CheckCoordinate(row, column);
+
+				Matrix<#=row#>x<#=column#><#=suffix#> m = this;
+
+				((<#=type#>*)&m)[row * <#=row#> + column] = value;
+			}
+		}
+
+		public unsafe Vector<#=column#><#=suffix#> GetRow(int row)
+		{
+			if (row < 0 || row >= <#=row#>)
+				throw new ArgumentOutOfRangeException(nameof(row), row, "The indicated row does not fall into the matrix.");
+				
+			Matrix<#=row#>x<#=column#><#=suffix#> m = this;
+
+			return ((Vector<#=column#><#=suffix#>*)&m)[row];
+		}
+
+		public unsafe Vector<#=row#><#=suffix#> GetColumn(int column)
+		{
+			if (column < 0 || column >= <#=column#>)
+				throw new ArgumentOutOfRangeException(nameof(column), column, "The indicated column does not fall into the matrix.");
+				
+			Matrix<#=row#>x<#=column#><#=suffix#> m = this;
+			<#=type#>* p = (<#=type#>*)&m;
+
+			return new Vector<#=row#><#=suffix#>(<#=string.Join(", ", Enumerable.Range(0, row).Select((o) => "p[" + column * o + " + column]"))#>);
+		}
+
+		public unsafe void SetRow(int row, Vector<#=column#><#=suffix#> value)
+		{
+			if (row < 0 || row >= <#=row#>)
+				throw new ArgumentOutOfRangeException(nameof(row), row, "The indicated row does not fall into the matrix.");
+				
+			Matrix<#=row#>x<#=column#><#=suffix#> m = this;
+
+			((Vector<#=column#><#=suffix#>*)&m)[row] = value;
+		}
+
+		public unsafe void SetColumn(int column, Vector<#=row#><#=suffix#> value)
+		{
+			if (column < 0 || column >= <#=column#>)
+				throw new ArgumentOutOfRangeException(nameof(column), column, "The indicated column does not fall into the matrix.");
+				
+			Matrix<#=row#>x<#=column#><#=suffix#> m = this;
+			<#=type#>* p = (<#=type#>*)&m;
+
+			<#
+			for(int i = 0; i < row; i++)
+			{
+			#>
+			p[<#=column * i#> + column] = value.<#=vector[i]#>;
+			<#
+			}
+			#>
+		}
+
+		private static void CheckCoordinate(int row, int column)
+		{
+			if (row < 0 || row >= <#=row#>)
+				throw new ArgumentOutOfRangeException(nameof(row), row, "The indicated row does not fall into the matrix.");
+			if (column < 0 || column >= <#=column#>)
+				throw new ArgumentOutOfRangeException(nameof(column), column, "The indicated column does not fall into the matrix.");
+		}
+
+		<#if (row == column)
+		{#>
+		public bool IsIdentity
+			{
+				get
+				{
+				return <#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < column; j++)
+				{ 
+				if (i != 0 || j != 0) { #> && <# } #> this.M<#=i+1#><#=j+1#> == <#=(i == j) ? 1 : 0#> 
+				<# } #>;
+				}
+			}
+		<# } #>
+
+		public static Vector<#=column#><#=suffix#> Transform(Vector<#=row#><#=suffix#> left, Matrix<#=row#>x<#=column#><#=suffix#> right)
+		{
+			return new Vector<#=column#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(0, column).Select((i) =>
+			{
+				return string.Join(" + ", Enumerable.Range(0, row).Select((k) => "left." + vector[k] + " * right.M" + (k + 1).ToString() + (i + 1)));
+			}))#>
+			);
+		}
+
+		public Vector<#=row#><#=suffix#> Transform(Vector<#=column#><#=suffix#> value)
+		{
+			return new Vector<#=row#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(0, row).Select((i) =>
+			{
+				return string.Join(" + ", Enumerable.Range(0, column).Select((k) => "M" + (i + 1).ToString() + (k + 1).ToString() + " * value." + vector[k]));
+			}))#>
+			);
+		}
+
+		public static Vector<#=row#><#=suffix#> Transform(Matrix<#=row#>x<#=column#><#=suffix#> left, Vector<#=column#><#=suffix#> right)
+		{
+			return new Vector<#=row#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(0, row).Select((i) =>
+			{
+				return string.Join(" + ", Enumerable.Range(0, column).Select((k) => "left.M" + (i + 1).ToString() + (k + 1).ToString() + " * right." + vector[k]));
+			}))#>
+			);
+		}
+
+		public static Point<#=column#><#=suffix#> Transform(Point<#=row#><#=suffix#> left, Matrix<#=row#>x<#=column#><#=suffix#> right)
+		{
+			return new Point<#=column#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(0, column).Select((i) =>
+			{
+				return string.Join(" + ", Enumerable.Range(0, row).Select((k) => "left." + vector[k] + " * right.M" + (k + 1).ToString() + (i + 1)));
+			}))#>
+			);
+		}
+
+		public Point<#=row#><#=suffix#> Transform(Point<#=column#><#=suffix#> value)
+		{
+			return new Point<#=row#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(0, row).Select((i) =>
+			{
+				return string.Join(" + ", Enumerable.Range(0, column).Select((k) => "M" + (i + 1).ToString() + (k + 1).ToString() + " * value." + vector[k]));
+			}))#>
+			);
+		}
+
+		public static Point<#=row#><#=suffix#> Transform(Matrix<#=row#>x<#=column#><#=suffix#> left, Point<#=column#><#=suffix#> right)
+		{
+			return new Point<#=row#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(0, row).Select((i) =>
+			{
+				return string.Join(" + ", Enumerable.Range(0, column).Select((k) => "left.M" + (i + 1).ToString() + (k + 1).ToString() + " * right." + vector[k]));
+			}))#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> FromRows(<#=string.Join(", ", Enumerable.Range(1, row).Select((i) => "Vector" + column + suffix + " row" + i))#>)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(1, row).Select((i) => string.Join(", ", Enumerable.Range(0, column).Select((j) => "row" + i + "." + vector[j]))))#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> FromRows(Vector<#=column#><#=suffix#>[] rows)
+		{
+			if (rows == null)
+				throw new ArgumentNullException(nameof(rows));
+
+			if (rows.Length != <#=row#>)
+				throw new ArgumentException("Expected a number of <#=row#> rows.", nameof(rows));
+
+			return FromRows(<#=string.Join(", ", Enumerable.Range(0, row).Select((i) => "rows[" + i + "]"))#>);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> FromColumns(<#=string.Join(", ", Enumerable.Range(1, column).Select((i) => "Vector" + row + suffix + " column" + i))#>)
+		{
+			return new Matrix<#=row#>x<#=column#><#=suffix#>(
+			<#=string.Join(", ", Enumerable.Range(1, column).Select((i) => string.Join(", ", Enumerable.Range(0, row).Select((j) => "column" + i + "." + vector[j]))))#>
+			);
+		}
+		
+		public static Matrix<#=row#>x<#=column#><#=suffix#> FromColumns(Vector<#=row#><#=suffix#>[] columns)
+		{
+			if (columns == null)
+				throw new ArgumentNullException(nameof(columns));
+
+			if (columns.Length != <#=column#>)
+				throw new ArgumentException("Expected a number of <#=column#> columns.", nameof(columns));
+
+			return FromColumns(<#=string.Join(", ", Enumerable.Range(0, column).Select((i) => "columns[" + i + "]"))#>);
+		}
+
+		<#
+		foreach(int k in dimensions)
+		foreach(int l in dimensions)
+		if (k == column)
+		{
+		#>public static Matrix<#=row#>x<#=l#><#=suffix#> operator*(Matrix<#=row#>x<#=column#><#=suffix#> left, Matrix<#=k#>x<#=l#><#=suffix#> right)
+		{
+			return new Matrix<#=row#>x<#=l#><#=suffix#>(
+				<#
+				for(int i = 0; i < row; i++)
+				for(int j = 0; j < l; j++)
+				{
+				if (i != 0 || j != 0) { #>, <# }
+				for(int m = 0; m < column; m++)
+				{
+				if (m != 0) { #> + <# }
+				#> left.M<#=i+1#><#=m+1#> * right.M<#=m+1#><#=j+1#> <#
+				}
+				}
+				#>
+			);
+		}
+		<#
+		}
+		#>
+	}
+
+<#
+	}
+}
+#>
+}

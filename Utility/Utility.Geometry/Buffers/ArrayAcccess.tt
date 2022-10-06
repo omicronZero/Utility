@@ -1,0 +1,155 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using System;
+
+<#
+
+const int maxDimension = 8;
+const string dimensionPropBaseName = "Dimension";
+const string dimensionParamBaseName = "dimension";
+const string indexParamBaseName = "index";
+string[] dimensionParamNames = new string[]{"width", "height", "depth"};
+string[] indexParamNames = new string[]{"x", "y", "z"};
+string[] dimensionPropNames = new string[]{"Width", "Height", "Depth"};
+
+for(int i = 2; i <= maxDimension; i++)
+{
+bool useParam = i <= dimensionParamNames.Length;
+#>
+
+namespace Utility.Geometry.Buffers
+{
+	public struct ArrayAccess<#=i#>D<T>
+	{
+		private readonly long _startIndex;
+		private readonly T[] _array;
+
+		<#
+		for(int j = 0; j < i; j++)
+		{
+		#>
+		public long <#=useParam ? dimensionPropNames[j] : dimensionPropBaseName + (j + 1).ToString()#> { get; }
+		<#
+		}
+		#>
+
+		public int Length
+		{
+			get => (int)LongLength;
+		}
+
+		public long LongLength
+		{
+			get => <#=string.Join(" * ", Enumerable.Range(0, i).Select((j) => useParam ? dimensionPropNames[j] : dimensionPropBaseName + (j + 1).ToString()))#>;
+		}
+
+		public ArrayAccess<#=i#>D(T[] array, <#=string.Join(", ", Enumerable.Range(0, i).Select((j) => "long " + (useParam ? dimensionParamNames[j] : dimensionParamBaseName + (j + 1).ToString())))#>)
+		: this(array, 0, <#=string.Join(", ", Enumerable.Range(0, i).Select((j) => useParam ? dimensionParamNames[j] : dimensionParamBaseName + (j + 1).ToString()))#>)
+		{ }
+
+		public ArrayAccess<#=i#>D(T[] array, long startIndex, <#=string.Join(", ", Enumerable.Range(0, i).Select((j) => "long " + (useParam ? dimensionParamNames[j] : dimensionParamBaseName + (j + 1).ToString())))#>)
+		{
+			if (array == null)
+				throw new ArgumentNullException(nameof(array));
+
+			if (startIndex < 0)
+				throw new ArgumentOutOfRangeException(nameof(startIndex), "Non-negative start index expected.");
+
+			_array = array;
+			_startIndex = startIndex;
+				
+			long len = 1;
+			<#
+			for(int j = 0; j < i; j++)
+			{
+			string cpnm = useParam ? dimensionParamNames[j] : dimensionParamBaseName + (j + 1).ToString();
+			#>
+
+			if (<#=cpnm#> < 0)
+				throw new ArgumentOutOfRangeException(nameof(<#=cpnm#>), "Non-negative <#=cpnm#> expected.");
+			len *= <#= cpnm#>;
+
+			<#
+			}
+			#>
+
+			if (array.LongLength - startIndex < len)
+				throw new ArgumentException("The array's size is too small to hold the amount of entries required by the dimensions.", nameof(array));
+			
+			<#
+			for(int j = 0; j < i; j++)
+			{
+			#>
+			<#=useParam ? dimensionPropNames[j] : dimensionPropBaseName + (j + 1).ToString()#> = <#=useParam ? dimensionParamNames[j] : dimensionParamBaseName + (j + 1).ToString()#>;
+			<#
+			}
+			#>
+		}
+
+		public T this[long arrayIndex]
+		{
+			get
+			{
+				CheckIndex(arrayIndex);
+				return _array[arrayIndex + _startIndex];
+			}
+			set
+			{
+				CheckIndex(arrayIndex);
+				_array[arrayIndex + _startIndex] = value;
+			}
+		}
+
+		public T this[<#=string.Join(", ", Enumerable.Range(0, i).Select((j) => "long " + (useParam ? indexParamNames[j] : indexParamBaseName + (j + 1).ToString())))#>]
+		{
+			get
+			{
+				return _array[ComputeIndex(<#=string.Join(", ", Enumerable.Range(0, i).Select((j) => (useParam ? indexParamNames[j] : indexParamBaseName + (j + 1).ToString())))#>)];				
+			}
+			set
+			{
+				_array[ComputeIndex(<#=string.Join(", ", Enumerable.Range(0, i).Select((j) => (useParam ? indexParamNames[j] : indexParamBaseName + (j + 1).ToString())))#>)] = value;
+			}
+		}
+
+		private long ComputeIndex(<#=string.Join(", ", Enumerable.Range(0, i).Select((j) => "long " + (useParam ? indexParamNames[j] : indexParamBaseName + (j + 1).ToString())))#>)
+		{
+			//uninitialized
+			if (_array == null)
+				throw new ArgumentException("Array access has not been initialized.");
+
+			<#
+			for(int j = 0; j < i; j++)
+			{
+				string cpnm = (useParam ? indexParamNames[j] : indexParamBaseName + (j + 1).ToString());
+			#>
+			if (<#=cpnm#> < 0 || <#=cpnm#> >= <#=useParam ? dimensionPropNames[j] : dimensionPropBaseName + (j + 1).ToString()#>)
+				throw new ArgumentOutOfRangeException(nameof(<#=cpnm#>), "<#=cpnm#> does not lie within its dimension size.");
+
+			<#
+			}
+			Func<int, string> accessor = null;
+
+			accessor = (k) => (useParam ? indexParamNames[k] : indexParamBaseName + (k + 1).ToString())
+				+ (k < i - 1 ? " + " + (useParam ? dimensionPropNames[k] : dimensionPropBaseName + (k + 1).ToString()) + " * (" + accessor(k + 1) + ")" : string.Empty);
+			#>
+
+			return _startIndex + <#=accessor(0)#>;
+		}
+
+		private void CheckIndex(long arrayIndex)
+		{
+			if (arrayIndex < 0 || arrayIndex >= LongLength)
+				throw new ArgumentOutOfRangeException(nameof(arrayIndex), "Array index does not fall into the valid range.");
+		}
+
+		//TODO: CopyTo, vector access, etc.
+	}
+}
+
+<#
+}
+#>

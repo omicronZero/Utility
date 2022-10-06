@@ -1,0 +1,228 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using System;
+using Utility;
+
+<#
+
+const int maxDimension = 8;
+const string dimensionPropBaseName = "Interval";
+const string dimensionParamBaseName = "interval";
+const string indexParamBaseName = "index";
+string[] defaultDimensionParamNames = new string[]{"intervalX", "intervalY", "intervalZ"};
+string[] defaultDimensionPropNames = new string[]{"IntervalX", "IntervalY", "IntervalZ"};
+string[] defaultIndexParamNames = new string[]{"x", "y", "z"};
+
+const string rangeType = "Interval<long>";
+#>
+
+namespace Utility.Geometry.Buffers
+{
+<#
+for(int i = 2; i <= maxDimension; i++)
+{
+string[] indexNames = (i <= defaultIndexParamNames.Length ? defaultIndexParamNames.Take(i) : Enumerable.Range(1, i).Select((j) => indexParamBaseName + j)).ToArray();
+string[] dimensionParamNames = (i <= defaultIndexParamNames.Length ? defaultDimensionParamNames.Take(i) : Enumerable.Range(1, i).Select((j) => dimensionParamBaseName + j)).ToArray();
+string[] dimensionPropNames = (i <= defaultIndexParamNames.Length ? defaultDimensionPropNames.Take(i) : Enumerable.Range(1, i).Select((j) => dimensionPropBaseName + j)).ToArray();
+
+#>
+	public struct AccessRangeView<#=i#>D<T>
+	{
+		private AccessView<#=i#>D<T> _view;
+
+		<#
+		for(int j = 1; j <= i; j++)
+		{
+		#>
+			public <#=rangeType#> <#=dimensionPropNames[j - 1]#> { get; }
+		<#
+		}
+		#>
+
+		public bool CanRead
+		{
+			get => _view.CanRead;
+		}
+
+		public bool CanWrite
+		{
+			get => _view.CanWrite;
+		}
+
+		public bool IsReadOnly
+		{
+			get => _view.IsReadOnly;
+		}
+
+		public bool IsWriteOnly
+		{
+			get => _view.IsWriteOnly;
+		}
+
+		public AccessRangeView<#=i#>D(Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T> getter,
+						  Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T> setter,
+						  <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => rangeType + " " + dimensionParamNames[j - 1]))#>)
+			: this(new AccessView<#=i#>D<T>(getter, setter), <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => dimensionParamNames[j - 1]))#>)
+		{ }
+
+		public AccessRangeView<#=i#>D(AccessView<#=i#>D<T> view, <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => rangeType + " " + dimensionParamNames[j - 1]))#>)
+		{
+			_view = view;
+			<#
+			for(int j = 1; j <= i; j++)
+			{
+			#>
+			<#=dimensionPropNames[j - 1]#> = <#=dimensionParamNames[j - 1]#>;
+			<#
+			}
+			#>
+		}
+
+		public AccessView<#=i#>D<T> AsView()
+		{
+			AccessRangeView<#=i#>D<T> inst = this;
+			return new AccessView<#=i#>D<T>(
+				CanRead ? new Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T>((<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>) => inst[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>]) : null,
+				CanWrite ? new Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long"))#>, T>((<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>, value) => inst[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>] = value) : null);
+		}
+
+		public T this[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long " + indexNames[j - 1]))#>]
+		{
+			get
+			{
+				CheckBounds(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>);
+
+				return _view[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>];
+			}
+			set 
+			{
+				CheckBounds(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>);
+
+				_view[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>] = value;
+			}
+		}
+
+		private void CheckBounds(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "long " + indexNames[j - 1]))#>)
+		{
+		<#
+		for(int j = 1; j <= i; j++)
+		{
+		#>
+		if (<#=indexNames[j - 1]#> < <#=dimensionPropNames[j - 1]#>.Start || <#=indexNames[j - 1]#> >= <#=dimensionPropNames[j - 1]#>.End)
+			throw new ArgumentOutOfRangeException(nameof(<#=indexNames[j - 1]#>), "Parameter <#=indexNames[j - 1]#> does not fall into the valid index range specified by <#=dimensionPropNames[j - 1]#>.");
+		<#
+		}
+		#>
+		}
+
+		public static implicit operator AccessRangeView<#=i#>D<T, long>(AccessRangeView<#=i#>D<T> value)
+		{
+			return new AccessRangeView<#=i#>D<T, long>(value._view, <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "value." + dimensionPropNames[j - 1]))#>);
+		}
+
+		public static implicit operator AccessRangeView<#=i#>D<T>(AccessRangeView<#=i#>D<T, long> value)
+		{
+			return new AccessRangeView<#=i#>D<T>(value.View, <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "value." + dimensionPropNames[j - 1]))#>);
+		}
+	}
+
+
+	
+	public struct AccessRangeView<#=i#>D<T, TIndex>
+		where TIndex : IComparable<TIndex>
+	{
+		internal AccessView<#=i#>D<T, TIndex> View;
+
+		<#
+		for(int j = 1; j <= i; j++)
+		{
+		#>
+			public Interval<TIndex> <#=dimensionPropNames[j - 1]#> { get; }
+		<#
+		}
+		#>
+
+		public bool CanRead
+		{
+			get => View.CanRead;
+		}
+
+		public bool CanWrite
+		{
+			get => View.CanWrite;
+		}
+
+		public bool IsReadOnly
+		{
+			get => View.IsReadOnly;
+		}
+
+		public bool IsWriteOnly
+		{
+			get => View.IsWriteOnly;
+		}
+
+		public AccessRangeView<#=i#>D(Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T> getter,
+						  Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T> setter,
+						  <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "Interval<TIndex> " + dimensionParamNames[j - 1]))#>)
+			: this(new AccessView<#=i#>D<T, TIndex>(getter, setter), <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => dimensionParamNames[j - 1]))#>)
+		{ }
+
+		public AccessRangeView<#=i#>D(AccessView<#=i#>D<T, TIndex> view, <#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "Interval<TIndex> " + dimensionParamNames[j - 1]))#>)
+		{
+			View = view;
+			<#
+			for(int j = 1; j <= i; j++)
+			{
+			#>
+			<#=dimensionPropNames[j - 1]#> = <#=dimensionParamNames[j - 1]#>;
+			<#
+			}
+			#>
+		}
+
+		public AccessView<#=i#>D<T, TIndex> AsView()
+		{
+			AccessRangeView<#=i#>D<T, TIndex> inst = this;
+			return new AccessView<#=i#>D<T, TIndex>(
+				CanRead ? new Func<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T>((<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>) => inst[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>]) : null,
+				CanWrite ? new Action<<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex"))#>, T>((<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>, value) => inst[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>] = value) : null);
+		}
+
+		public T this[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex " + indexNames[j - 1]))#>]
+		{
+			get
+			{
+				CheckBounds(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>);
+
+				return View[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>];
+			}
+			set 
+			{
+				CheckBounds(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>);
+
+				View[<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => indexNames[j - 1]))#>] = value;
+			}
+		}
+
+		private void CheckBounds(<#=string.Join(", ", Enumerable.Range(1, i).Select((j) => "TIndex " + indexNames[j - 1]))#>)
+		{
+		<#
+		for(int j = 1; j <= i; j++)
+		{
+		#>
+		if (<#=indexNames[j - 1]#> < <#=dimensionPropNames[j - 1]#>.StartComparable || <#=indexNames[j - 1]#> >= <#=dimensionPropNames[j - 1]#>.EndComparable)
+			throw new ArgumentOutOfRangeException(nameof(<#=indexNames[j - 1]#>), "Parameter <#=indexNames[j - 1]#> does not fall into the valid index range specified by <#=dimensionPropNames[j - 1]#>.");
+		<#
+		}
+		#>
+		}
+	}
+
+<#
+}
+#>
+}

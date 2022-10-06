@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Utility.Contexts\Utility.Contexts.csproj" />
+    <ProjectReference Include="..\Utility.DataStructures\Utility.DataStructures.csproj" />
+    <ProjectReference Include="..\Utility.Experimental\Utility.Experimental.csproj" />
+    <ProjectReference Include="..\Utility.Geometry\Utility.Geometry.csproj" />
+    <ProjectReference Include="..\Utility.Mathematics.MathObjects\Utility.Mathematics.MathObjects.csproj" />
+    <ProjectReference Include="..\Utility.Mathematics\Utility.Mathematics.csproj" />
+    <ProjectReference Include="..\Utility.ObjectDescription\Utility.ObjectDescription.csproj" />
+    <ProjectReference Include="..\Utility.Resources\Utility.Resources.csproj" />
+    <ProjectReference Include="..\Utility.Workflow\Utility.Workflow.csproj" />
+  </ItemGroup>
+
+</Project>
