@@ -53,7 +53,7 @@ namespace Utility.DataStructures
                     //we demand nodes to be initialized first
                     _ = Nodes;
                     _edges = CreateEdges() ?? throw new InvalidOperationException(message: "The edges-collection initializer must return a valid reference to an object.");
-                    _nodes.Initialize(this);
+                    _edges.Initialize(this);
                 }
 
                 return _edges;

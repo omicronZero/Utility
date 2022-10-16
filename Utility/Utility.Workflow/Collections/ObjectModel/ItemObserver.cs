@@ -23,7 +23,8 @@ namespace Utility.Collections.ObjectModel
             INotifyCollectionChanged collection,
             Action<T> itemInserted,
             Action<T> itemRemoved,
-            Action itemsReset)
+            Action itemsReset,
+            bool initialReset = true)
         {
             if (collection == null)
                 throw new ArgumentNullException(nameof(collection));
@@ -37,6 +38,9 @@ namespace Utility.Collections.ObjectModel
 
             _collection = collection;
 
+            if (initialReset && itemsReset != null)
+                itemsReset();
+
             collection.CollectionChanged += Collection_CollectionChanged;
         }
 
@@ -44,9 +48,10 @@ namespace Utility.Collections.ObjectModel
             INotifyCollectionChanged collection,
             Action<T> itemInserted,
             Action<T> itemRemoved,
-            Action itemsReset)
+            Action itemsReset,
+            bool initialReset = true)
         {
-            return new ItemObserver<T>(collection, itemInserted, itemRemoved, itemsReset);
+            return new ItemObserver<T>(collection, itemInserted, itemRemoved, itemsReset, initialReset);
         }
 
         private void Collection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
