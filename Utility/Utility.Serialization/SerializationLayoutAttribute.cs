@@ -8,14 +8,17 @@ namespace Utility.Serialization
     {
         public ReadOnlyCollection<Type> Layout { get; }
 
+        internal Type[] LayoutArray { get; }
+
         public SerializationLayoutAttribute(params Type[] layout)
         {
             if (layout == null)
                 throw new ArgumentNullException(nameof(layout));
 
-            Layout = Array.AsReadOnly((Type[])layout.Clone());
+            LayoutArray = (Type[])layout.Clone();
+            Layout = Array.AsReadOnly(LayoutArray);
 
-            foreach (var t in Layout)
+            foreach (var t in LayoutArray)
             {
                 if (t == null)
                     throw new ArgumentException("Layout entries must not be null.", nameof(layout));
