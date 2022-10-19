@@ -97,7 +97,7 @@ namespace Utility.Serialization
                     if (layout == null)
                         Serializer = (IObjectSerializer?)Activator.CreateInstance(typeof(SerializableSerializer<>).MakeGenericType(typeof(T)));
                     else
-                        Serializer = (IObjectSerializer?)Activator.CreateInstance(typeof(LayoutSerializableSerializer<>).MakeGenericType(typeof(T)), layout.Layout);
+                        Serializer = (IObjectSerializer?)Activator.CreateInstance(typeof(LayoutSerializableSerializer<>).MakeGenericType(typeof(T)), new object[] { layout.LayoutArray });
                 }
                 else
                 {
