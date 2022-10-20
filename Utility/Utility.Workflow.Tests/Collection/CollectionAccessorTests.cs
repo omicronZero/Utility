@@ -12,7 +12,7 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestWithoutContainsDelegate()
         {
-            CollectionAccessor<int> accessor = new CollectionAccessor<int>(Enumerable.Range(0, 10), () => 10);
+            DelegateCollection<int> accessor = new DelegateCollection<int>(Enumerable.Range(0, 10), () => 10);
 
             Assert.Equal(10, accessor.Count);
             Assert.Contains(5, accessor);
@@ -24,7 +24,7 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestWithContainsDelegate()
         {
-            CollectionAccessor<int> accessor = new CollectionAccessor<int>(Enumerable.Range(0, 10), () => 10, (i) => i >= 0 && i < 10);
+            DelegateCollection<int> accessor = new DelegateCollection<int>(Enumerable.Range(0, 10), () => 10, (i) => i >= 0 && i < 10);
 
             Assert.Equal(10, accessor.Count);
             Assert.Contains(5, accessor);
@@ -36,7 +36,7 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestExceptions()
         {
-            CollectionAccessor<int> accessor = new CollectionAccessor<int>(Enumerable.Range(0, 10), () => 10, (i) => i >= 0 && i < 10);
+            DelegateCollection<int> accessor = new DelegateCollection<int>(Enumerable.Range(0, 10), () => 10, (i) => i >= 0 && i < 10);
 
             Assert.Throws<InvalidOperationException>(() => accessor.Add(11));
             Assert.Throws<InvalidOperationException>(() => accessor.Remove(1));
@@ -46,7 +46,7 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestCopyTo()
         {
-            CollectionAccessor<int> accessor = new CollectionAccessor<int>(Enumerable.Range(0, 10), () => 10, (i) => i >= 0 && i < 10);
+            DelegateCollection<int> accessor = new DelegateCollection<int>(Enumerable.Range(0, 10), () => 10, (i) => i >= 0 && i < 10);
 
             int[] items = new int[10];
 

@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Dataflow
 {
-    public class DualStackFront<T> : IEnumerable<T>
+    public class StackFront<T> : IEnumerable<T>
     {
         private readonly Stack<T> _stack;
 
-        public DualStackFront(Stack<T> stack)
+        public StackFront(Stack<T> stack)
         {
             if (stack == null)
                 throw new ArgumentNullException(nameof(stack));

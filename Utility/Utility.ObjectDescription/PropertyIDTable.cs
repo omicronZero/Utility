@@ -97,7 +97,7 @@ namespace Utility.ObjectDescription
             return GetAccessor(name);
         }
 
-        protected override IList<PropertyAccessor> PropertiesCore => new ListAccessor<PropertyAccessor>((i) => Properties[i], () => Properties.Count, false);
+        protected override IList<PropertyAccessor> PropertiesCore => new DelegateList<PropertyAccessor>((i) => Properties[i], () => Properties.Count, false);
 
         public IList<PropertyIDTable> GetInterfaceTables()
         {

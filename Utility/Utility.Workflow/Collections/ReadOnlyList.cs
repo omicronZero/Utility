@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.Collections
 {
@@ -17,14 +18,14 @@ namespace Utility.Collections
             _underlyingList = underlyingList;
         }
 
-        private ListHelper<T, IList<T>> ListHelper
+        private ListAdapterNongeneric<T, IList<T>> ListHelper
         {
             get
             {
                 if (_underlyingList == null)
                     throw new NullReferenceException();
 
-                return new ListHelper<T, IList<T>>(_underlyingList);
+                return new ListAdapterNongeneric<T, IList<T>>(_underlyingList);
             }
         }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utility.Collections;
+using Utility.Workflow.Collections.Adapters;
 using Xunit;
 
 namespace Utility.Tests.Collection
@@ -15,7 +15,7 @@ namespace Utility.Tests.Collection
             List<string> strings = new List<string>();
             List<string> comparison = new List<string>();
 
-            ListHelper<string, List<string>> helper = new ListHelper<string, List<string>>(strings);
+            ListAdapterNongeneric<string, List<string>> helper = new ListAdapterNongeneric<string, List<string>>(strings);
 
             helper.Add("Test1");
             comparison.Add("Test1");
@@ -87,13 +87,13 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestFixedSizeList()
         {
-            Assert.True(new ListHelper<int, int[]>(new int[] {123 }).IsReadOnly);
+            Assert.True(new ListAdapterNongeneric<int, int[]>(new int[] {123 }).IsReadOnly);
         }
 
         [Fact]
         public void TestNull()
         {
-            var c = new ListHelper<string, List<string>>();
+            var c = new ListAdapterNongeneric<string, List<string>>();
 
             Assert.Throws<NullReferenceException>(() => c.Add("foo"));
             Assert.Throws<NullReferenceException>(() => c.Insert(0, "foo"));

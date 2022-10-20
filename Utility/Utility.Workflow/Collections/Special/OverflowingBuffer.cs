@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Utility.Collections;
 using Utility.Collections.Tools;
+using Utility.Workflow.Collections.Adapters;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Special
 {
     public class OverflowingBuffer<T> : IList<T>, IReadOnlyList<T>, IList
     {
@@ -168,7 +170,7 @@ namespace Utility.Collections
 
         void ICollection<T>.CopyTo(T[] array, int arrayIndex)
         {
-            SelectorList.SelectList(this, (s) => s).CopyTo(array, arrayIndex);
+            this.SelectList((s) => s).CopyTo(array, arrayIndex);
         }
 
         bool ICollection<T>.Remove(T item)
@@ -223,7 +225,7 @@ namespace Utility.Collections
 
         #region IList
 
-        private ListHelper<T, OverflowingBuffer<T>> ListHelper => new ListHelper<T, OverflowingBuffer<T>>(this);
+        private ListAdapterNongeneric<T, OverflowingBuffer<T>> ListHelper => new ListAdapterNongeneric<T, OverflowingBuffer<T>>(this);
 
         object IList.this[int index]
         {
@@ -231,52 +233,52 @@ namespace Utility.Collections
             set => ((IList)ListHelper)[index] = value;
         }
 
-        bool IList.IsFixedSize => ((IList)ListHelper).IsFixedSize;
+        bool IList.IsFixedSize => ListHelper.IsFixedSize;
 
-        bool IList.IsReadOnly => ((IList)ListHelper).IsReadOnly;
+        bool IList.IsReadOnly => ListHelper.IsReadOnly;
 
-        bool ICollection.IsSynchronized => ((IList)ListHelper).IsSynchronized;
+        bool ICollection.IsSynchronized => ListHelper.IsSynchronized;
 
-        object ICollection.SyncRoot => ((IList)ListHelper).SyncRoot;
+        object ICollection.SyncRoot => ListHelper.SyncRoot;
 
         int IList.Add(object value)
         {
-            return ((IList)ListHelper).Add(value);
+            return ListHelper.Add(value);
         }
 
         void IList.Clear()
         {
-            ((IList)ListHelper).Clear();
+            ListHelper.Clear();
         }
 
         bool IList.Contains(object value)
         {
-            return ((IList)ListHelper).Contains(value);
+            return ListHelper.Contains(value);
         }
 
         int IList.IndexOf(object value)
         {
-            return ((IList)ListHelper).IndexOf(value);
+            return ListHelper.IndexOf(value);
         }
 
         void IList.Insert(int index, object value)
         {
-            ((IList)ListHelper).Insert(index, value);
+            ListHelper.Insert(index, value);
         }
 
         void IList.Remove(object value)
         {
-            ((IList)ListHelper).Remove(value);
+            ListHelper.Remove(value);
         }
 
         void IList.RemoveAt(int index)
         {
-            ((IList)ListHelper).RemoveAt(index);
+            ListHelper.RemoveAt(index);
         }
 
         void ICollection.CopyTo(Array array, int index)
         {
-            ((IList)ListHelper).CopyTo(array, index);
+            ListHelper.CopyTo(array, index);
         }
 
         #endregion

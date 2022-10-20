@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Dataflow
 {
-    public class DualStackBack<T>
+    public class StackBack<T>
     {
         private readonly Stack<T> _stack;
 
-        public DualStackBack(Stack<T> stack)
+        public StackBack(Stack<T> stack)
         {
             if (stack == null)
                 throw new ArgumentNullException(nameof(stack));
@@ -16,7 +16,7 @@ namespace Utility.Collections
             _stack = stack;
         }
 
-        public int Count => _stack.Count; 
+        public int Count => _stack.Count;
 
         public void Push(T item)
         {

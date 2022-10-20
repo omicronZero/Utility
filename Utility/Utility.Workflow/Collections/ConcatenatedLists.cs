@@ -8,15 +8,15 @@ using Utility.Collections.Tools;
 namespace Utility.Collections
 {
     [Serializable]
-    public struct CompositeList<T> : IList<T>, IReadOnlyList<T>, ISerializable
+    public struct ConcatenatedLists<T> : IList<T>, IReadOnlyList<T>, ISerializable
     {
         private readonly IEnumerable<IList<T>> _lists;
 
-        public CompositeList(params IList<T>[] lists)
+        public ConcatenatedLists(params IList<T>[] lists)
             : this((IEnumerable<IList<T>>)(lists ?? throw new ArgumentNullException(nameof(lists))))
         { }
 
-        public CompositeList(IEnumerable<IList<T>> listsEnumerable)
+        public ConcatenatedLists(IEnumerable<IList<T>> listsEnumerable)
         {
             if (listsEnumerable == null)
                 throw new ArgumentNullException(nameof(listsEnumerable));
@@ -24,7 +24,7 @@ namespace Utility.Collections
             _lists = listsEnumerable;
         }
 
-        private CompositeList(SerializationInfo info, StreamingContext context)
+        private ConcatenatedLists(SerializationInfo info, StreamingContext context)
         {
             if (info == null)
                 throw new ArgumentNullException(nameof(info));

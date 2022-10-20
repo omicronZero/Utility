@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Utility.Collections.Tools;
+using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.Collections
 {
@@ -60,14 +61,14 @@ namespace Utility.Collections
             }
         }
 
-        private CollectionHelper<T, SelectorCollection<T, TUnderlying>> CollectionHelper
+        private CollectionAdapterNongeneric<T, SelectorCollection<T, TUnderlying>> CollectionHelper
         {
             get
             {
                 if (_underlyingCollection == null)
                     throw new NullReferenceException();
 
-                return new CollectionHelper<T, SelectorCollection<T, TUnderlying>>(this);
+                return new CollectionAdapterNongeneric<T, SelectorCollection<T, TUnderlying>>(this);
             }
         }
 

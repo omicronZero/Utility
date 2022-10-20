@@ -3,15 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Utility.Collections.Tools;
+using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.Collections
 {
-    public sealed class ListAccessor<T> : ListBase<T>
+    public sealed class DelegateList<T> : ListBase<T>
     {
         private readonly Func<int, T> _indexer;
         private readonly Func<int> _countEvaluator;
 
-        public ListAccessor(Func<int, T> indexer, Func<int> countEvaluator, bool checkBounds)
+        public DelegateList(Func<int, T> indexer, Func<int> countEvaluator, bool checkBounds)
         {
             if (indexer == null)
                 throw new ArgumentNullException(nameof(indexer));

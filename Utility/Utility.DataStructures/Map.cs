@@ -71,9 +71,9 @@ namespace Utility.DataStructures
 
         protected Entry GetItem(KeyValuePair<TKey, TValue> pair) => GetItem(pair.Key, pair.Value);
 
-        public ICollection<TKey> Keys => new CollectionAccessor<TKey>(this.Select((s) => s.Key), () => Count, ContainsKey);
+        public ICollection<TKey> Keys => new DelegateCollection<TKey>(this.Select((s) => s.Key), () => Count, ContainsKey);
 
-        public ICollection<TValue> Values => new CollectionAccessor<TValue>(this.Select((s) => s.Value), () => Count);
+        public ICollection<TValue> Values => new DelegateCollection<TValue>(this.Select((s) => s.Value), () => Count);
 
         public int Count => _root.Count;
 

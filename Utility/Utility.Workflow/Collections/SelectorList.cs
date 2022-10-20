@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Utility.Collections.Tools;
+using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.Collections
 {
@@ -59,14 +60,14 @@ namespace Utility.Collections
             }
         }
 
-        private ListHelper<T, SelectorList<T, TUnderlying>> ListHelper
+        private ListAdapterNongeneric<T, SelectorList<T, TUnderlying>> ListHelper
         {
             get
             {
                 if (_underlyingList == null)
                     throw new NullReferenceException();
 
-                return new ListHelper<T, SelectorList<T, TUnderlying>>(this);
+                return new ListAdapterNongeneric<T, SelectorList<T, TUnderlying>>(this);
             }
         }
 

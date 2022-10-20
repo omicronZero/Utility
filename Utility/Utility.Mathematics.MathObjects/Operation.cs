@@ -29,7 +29,7 @@ namespace Utility.Mathematics.MathObjects
 
         public IList<ObjectConstraint> GetParameters()
         {
-            return new ListAccessor<ObjectConstraint>(GetPropertyConstraint, () => Arity, true);
+            return new DelegateList<ObjectConstraint>(GetPropertyConstraint, () => Arity, true);
         }
     }
 

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Adapters
 {
     public abstract class ListBase<T> : CollectionBase<T>, IList<T>, IReadOnlyList<T>, IList
     {
@@ -85,7 +85,7 @@ namespace Utility.Collections
         private static T CastItem(object value)
         {
             if (!(value is T v))
-                throw new ArgumentException($"Item of type { typeof(T).FullName } expected.");
+                throw new ArgumentException($"Item of type {typeof(T).FullName} expected.");
 
             return v;
         }

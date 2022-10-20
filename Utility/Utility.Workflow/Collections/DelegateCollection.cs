@@ -3,22 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utility.Collections;
 using Utility.Collections.Tools;
+using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.Collections
 {
-    public class CollectionAccessor<T> : CollectionBase<T>
+    public class DelegateCollection<T> : CollectionBase<T>
     {
         private readonly Func<int> _countEvaluator;
         private readonly Func<T, bool> _containsEvaluator;
         private readonly IEnumerable<T> _enumeration;
 
-        public CollectionAccessor(IEnumerable<T> enumeration, Func<int> countEvaluator)
+        public DelegateCollection(IEnumerable<T> enumeration, Func<int> countEvaluator)
             : this(enumeration, countEvaluator, null)
         { }
 
-        public CollectionAccessor(IEnumerable<T> enumeration, Func<int> countEvaluator, Func<T, bool> containsEvaluator)
+        public DelegateCollection(IEnumerable<T> enumeration, Func<int> countEvaluator, Func<T, bool> containsEvaluator)
         {
             _enumeration = enumeration ?? throw new ArgumentNullException(nameof(enumeration));
             _countEvaluator = countEvaluator ?? throw new ArgumentNullException(nameof(countEvaluator));

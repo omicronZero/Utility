@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Utility.Collections;
+using Utility.Workflow.Collections.Dataflow;
 using Xunit;
 
 namespace Utility.Tests.Collection
@@ -15,15 +16,15 @@ namespace Utility.Tests.Collection
             //queue behavior is derived from Queue and thus will not be tested
             //only constructors and Back/Front are going to be tested, here
 
-            DualQueue<string> queue = new DualQueue<string>();
+            TwoEndedQueue<string> queue = new TwoEndedQueue<string>();
 
             Assert.Empty(queue);
 
-            queue = new DualQueue<string>(new string[] { "a", "b", "c" });
+            queue = new TwoEndedQueue<string>(new string[] { "a", "b", "c" });
 
             Assert.Equal(3, queue.Count);
 
-            queue = new DualQueue<string>(3);
+            queue = new TwoEndedQueue<string>(3);
         }
 
         [Fact]
@@ -31,7 +32,7 @@ namespace Utility.Tests.Collection
         {
             Queue<string> queue = new Queue<string>();
 
-            var front = new DualQueueFront<string>(queue);
+            var front = new QueueFront<string>(queue);
 
             queue.Enqueue("Front");
             queue.Enqueue("Back");
@@ -60,7 +61,7 @@ namespace Utility.Tests.Collection
         {
             Queue<string> queue = new Queue<string>();
 
-            var back = new DualQueueBack<string>(queue);
+            var back = new QueueBack<string>(queue);
 
             back.Enqueue("Front");
             back.Enqueue("Back");

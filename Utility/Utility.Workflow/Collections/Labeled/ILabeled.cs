@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Labeled
 {
     internal interface ILabeled
     {

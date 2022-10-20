@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Adapters
 {
-    public struct CollectionHelper<TItem, TCollection> : ICollection
+    public struct CollectionAdapterNongeneric<TItem, TCollection> : ICollection
         where TCollection : ICollection<TItem>
     {
         private readonly TCollection _list;
 
-        public CollectionHelper(TCollection list)
+        public CollectionAdapterNongeneric(TCollection list)
         {
             if (list == null)
                 throw new ArgumentNullException(nameof(list));
@@ -84,7 +84,7 @@ namespace Utility.Collections
             TItem[] v = array as TItem[];
 
             if (v == null)
-                throw new ArgumentException($"One-dimensional, zero-based array of type { typeof(TItem).FullName } expected.");
+                throw new ArgumentException($"One-dimensional, zero-based array of type {typeof(TItem).FullName} expected.");
 
             _list.CopyTo(v, index);
         }
@@ -112,7 +112,7 @@ namespace Utility.Collections
             TItem it;
 
             if (!Cast(value, out it))
-                throw new ArgumentException($"Value expected to be of type { typeof(TItem).FullName }.");
+                throw new ArgumentException($"Value expected to be of type {typeof(TItem).FullName}.");
 
             return it;
         }

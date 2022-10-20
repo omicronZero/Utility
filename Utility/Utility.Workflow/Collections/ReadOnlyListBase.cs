@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Utility.Collections.Tools;
+using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.Collections
 {

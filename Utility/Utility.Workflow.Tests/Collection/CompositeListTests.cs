@@ -29,7 +29,7 @@ namespace Utility.Tests.Collection
                 }
             }
 
-            CompositeList<string> composite = new CompositeList<string>(lists);
+            ConcatenatedLists<string> composite = new ConcatenatedLists<string>(lists);
 
             Assert.Equal(totalCount, composite.Count);
 
@@ -53,7 +53,7 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestNull()
         {
-            var c = new CompositeList<string>();
+            var c = new ConcatenatedLists<string>();
             IList<string> clst = c;
 
             Assert.Throws<NullReferenceException>(() => clst.Add("foo"));

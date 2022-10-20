@@ -12,7 +12,7 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestBehavior()
         {
-            ListAccessor<int> accessor = new ListAccessor<int>((i) => i, () => 50, true);
+            DelegateList<int> accessor = new DelegateList<int>((i) => i, () => 50, true);
 
             Assert.Contains(12, accessor);
             Assert.True(accessor.SequenceEqual(Enumerable.Range(0, 50)));

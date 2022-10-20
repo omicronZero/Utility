@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Dataflow
 {
-    public class DualQueueFront<T> : IEnumerable<T>
+    public class QueueFront<T> : IEnumerable<T>
     {
         private readonly Queue<T> _queue;
 
-        public DualQueueFront(Queue<T> queue)
+        public QueueFront(Queue<T> queue)
         {
             if (queue == null)
                 throw new ArgumentNullException(nameof(queue));

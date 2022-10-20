@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Dataflow
 {
-    public class DualQueueBack<T>
+    public class QueueBack<T>
     {
         private readonly Queue<T> _queue;
 
-        public DualQueueBack(Queue<T> queue)
+        public QueueBack(Queue<T> queue)
         {
             if (queue == null)
                 throw new ArgumentNullException(nameof(queue));

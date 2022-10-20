@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
+using Utility.Collections;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Labeled
 {
-    public class LabeledCollection<T> : Collection<T>, ILabeled
+    public class LabeledCollection<T> : Utility.Collections.Collection<T>, ILabeled
     {
         private static readonly Comparer<Label> Comparer = Comparer<Label>.Create((l, r) => l.Index.CompareTo(r.Index));
         private Label[] _labels;

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utility;
 using System.Collections.ObjectModel;
-using Utility.Collections;
+using Utility.Workflow.Collections.Labeled;
 
 namespace Utility.Dynamic.Disassembly
 {

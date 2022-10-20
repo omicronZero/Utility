@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Utility.Collections.ObjectModel
 {
-    public class SelectorObservableCollection<T, TInner> : ICollection<T>, INotifyCollectionChanged, IDisposable
+    public class SelectingObservableCollection<T, TInner> : ICollection<T>, INotifyCollectionChanged, IDisposable
     {
 
         private readonly ICollection<TInner> _innerList;
@@ -20,7 +20,7 @@ namespace Utility.Collections.ObjectModel
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        public SelectorObservableCollection(ICollection<TInner> innerList, Func<TInner, T> selector)
+        public SelectingObservableCollection(ICollection<TInner> innerList, Func<TInner, T> selector)
         {
             _innerList = innerList ?? throw new ArgumentNullException(nameof(innerList));
             _selector = selector ?? throw new ArgumentNullException(nameof(selector));

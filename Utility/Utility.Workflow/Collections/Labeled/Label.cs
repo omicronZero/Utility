@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Labeled
 {
     public class Label
     {

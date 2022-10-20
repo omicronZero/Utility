@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utility.Collections;
+using Utility.Workflow.Collections.Adapters;
 using Xunit;
 
 namespace Utility.Tests.Collection
@@ -15,7 +15,7 @@ namespace Utility.Tests.Collection
             List<string> strings = new List<string>();
             List<string> comparison = new List<string>();
 
-            CollectionHelper<string, List<string>> helper = new CollectionHelper<string, List<string>>(strings);
+            CollectionAdapterNongeneric<string, List<string>> helper = new CollectionAdapterNongeneric<string, List<string>>(strings);
 
             helper.Add("Test1");
             comparison.Add("Test1");
@@ -68,7 +68,7 @@ namespace Utility.Tests.Collection
         [Fact]
         public void TestNull()
         {
-            var c = new CollectionHelper<string, List<string>>();
+            var c = new CollectionAdapterNongeneric<string, List<string>>();
 
             Assert.Throws<NullReferenceException>(() => c.Add("foo"));
             Assert.Throws<NullReferenceException>(() => c.Remove("foo"));

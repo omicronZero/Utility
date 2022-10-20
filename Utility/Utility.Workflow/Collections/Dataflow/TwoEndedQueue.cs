@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Dataflow
 {
-    public class DualStack<T> : Stack<T>
+    public class TwoEndedQueue<T> : Queue<T>
     {
-        private DualStackFront<T> _front;
-        private DualStackBack<T> _back;
+        private QueueFront<T> _front;
+        private QueueBack<T> _back;
 
-        public DualStackFront<T> Front
+        public QueueFront<T> Front
         {
             get
             {
@@ -19,7 +19,7 @@ namespace Utility.Collections
             }
         }
 
-        public DualStackBack<T> Back
+        public QueueBack<T> Back
         {
             get
             {
@@ -32,13 +32,13 @@ namespace Utility.Collections
         private void EnsureFrontInitialized()
         {
             if (_front == null)
-                _front = new DualStackFront<T>(this);
+                _front = new QueueFront<T>(this);
         }
 
         private void EnsureBackInitialized()
         {
             if (_back == null)
-                _back = new DualStackBack<T>(this);
+                _back = new QueueBack<T>(this);
         }
 
         /// <summary>
@@ -50,14 +50,14 @@ namespace Utility.Collections
             EnsureBackInitialized();
         }
 
-        public DualStack()
+        public TwoEndedQueue()
         { }
 
-        public DualStack(int capacity)
+        public TwoEndedQueue(int capacity)
             : base(capacity)
         { }
 
-        public DualStack(IEnumerable<T> collection)
+        public TwoEndedQueue(IEnumerable<T> collection)
             : base(collection)
         { }
     }

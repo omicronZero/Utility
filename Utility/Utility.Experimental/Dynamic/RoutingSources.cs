@@ -12,7 +12,7 @@ namespace Utility.Dynamic
         internal RoutingSources()
         {
             _entriesList = new List<List<RoutingEntry<TDescription, TState>>>();
-            Entries = new Collections.CompositeList<RoutingEntry<TDescription, TState>>(_entriesList);
+            Entries = new Collections.ConcatenatedLists<RoutingEntry<TDescription, TState>>(_entriesList);
         }
 
         public int FrameCount => _entriesList.Count;

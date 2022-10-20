@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using Utility.Collections.Tools;
 
-namespace Utility.Collections
+namespace Utility.Workflow.Collections.Adapters
 {
     public abstract class CollectionBase<T> : ICollection, ICollection<T>, IReadOnlyCollection<T>
     {
@@ -42,7 +42,7 @@ namespace Utility.Collections
                 throw new ArgumentNullException(nameof(array));
 
             if (!(array is T[] castArray))
-                throw new ArgumentException($"One-dimensional zero-based array of type { typeof(T).FullName } expected.", nameof(array));
+                throw new ArgumentException($"One-dimensional zero-based array of type {typeof(T).FullName} expected.", nameof(array));
 
             CopyTo(castArray, index);
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Utility.Collections;
+using Utility.Workflow.Collections.Dataflow;
 using Xunit;
 
 namespace Utility.Tests.Collection
@@ -15,15 +16,15 @@ namespace Utility.Tests.Collection
             //queue behavior is derived from Stack and thus will not be tested
             //only constructors and Back/Front are going to be tested, here
 
-            DualStack<string> stack = new DualStack<string>();
+            TwoEndedStack<string> stack = new TwoEndedStack<string>();
 
             Assert.Empty(stack);
 
-            stack = new DualStack<string>(new string[] { "a", "b", "c" });
+            stack = new TwoEndedStack<string>(new string[] { "a", "b", "c" });
 
             Assert.Equal(3, stack.Count);
 
-            stack = new DualStack<string>(3);
+            stack = new TwoEndedStack<string>(3);
         }
 
         [Fact]
@@ -31,7 +32,7 @@ namespace Utility.Tests.Collection
         {
             Stack<string> stack = new Stack<string>();
 
-            var front = new DualStackFront<string>(stack);
+            var front = new StackFront<string>(stack);
 
             stack.Push("Back");
             stack.Push("Front");
@@ -60,7 +61,7 @@ namespace Utility.Tests.Collection
         {
             Stack<string> stack = new Stack<string>();
 
-            var back = new DualStackBack<string>(stack);
+            var back = new StackBack<string>(stack);
 
             back.Push("Back");
             back.Push("Front");

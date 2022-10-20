@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using Utility.Collections;
 using Utility.Collections.Tools;
+using Utility.Reflection;
+using Utility.Workflow.Collections.Adapters;
 
 namespace Utility
 {
@@ -235,6 +237,125 @@ namespace Utility
         {
             AddSequence(collection, (IEnumerable<T>)items);
         }
+        public static bool IsSetterReadonly<T>(this IList<T> instance)
+        {
+            if (instance == null)
+                throw new ArgumentNullException(nameof(instance));
+
+            if (!(instance is IList c))
+                return instance.IsReadOnly;
+
+            return c.IsReadOnly;
+        }
+
+        public static bool IsFixedSize<T>(this IList<T> instance)
+        {
+            if (instance == null)
+                throw new ArgumentNullException(nameof(instance));
+
+            return (instance is IList c) && c.IsFixedSize;
+        }
+
+        public static IList<T> Single<T>(T item)
+        {
+            return new SingleItemList<T>(item);
+        }
+
+        public static IList<TResult> CastList<TSource, TResult>(this IList<TSource> list)
+            where TResult : TSource
+        {
+            if (list == null)
+                throw new ArgumentNullException(nameof(list));
+
+            return list as IList<TResult> ?? new CastListWrapper<TSource, TResult>(list);
+        }
+
+        public static IList<TResult> CastList<TResult>(this IList list)
+        {
+            if (list == null)
+                throw new ArgumentNullException(nameof(list));
+
+            //The creation of the cast list via CastList<TResult> is more inefficient than directly calling CastList<TSource, TResult> but the case that IList is an IList<T> is caught by this call
+            Type[] sourceTypes = TypeReflectionExtensions.GetGenericImplementations(list.GetType(), typeof(IList<>)).Select((s) => s.GetGenericArguments()[0]).ToArray();
+
+            if (sourceTypes.Length == 1)
+            {
+                if (sourceTypes[0].IsAssignableFrom(typeof(TResult)))
+                    return (IList<TResult>)Activator.CreateInstance(typeof(CastListWrapper<,>).MakeGenericType(sourceTypes[0], typeof(TResult)), list);
+            }
+
+            return list as IList<TResult> ?? new CastListWrapper<TResult>(list);
+        }
+
+        private sealed class SingleItemList<T> : ListBase<T>
+        {
+            private readonly T _item;
+
+            internal SingleItemList(T item)
+            {
+                _item = item;
+            }
+
+            public override int Count => 1;
+
+            public override bool IsReadOnly => true;
+
+            public override bool Contains(T item)
+            {
+                return EqualityComparer<T>.Default.Equals(_item, item);
+            }
+
+            public override void CopyTo(T[] array, int arrayIndex)
+            {
+                Util.ValidateRange(array, arrayIndex, 1);
+                array[arrayIndex] = _item;
+            }
+
+            public override IEnumerator<T> GetEnumerator()
+            {
+                yield return _item;
+            }
+
+            public override int IndexOf(T item)
+            {
+                return Contains(item) ? 0 : -1;
+            }
+
+            public override T this[int index]
+            {
+                get
+                {
+                    Util.ValidateNamedIndex(index, 1, lengthName: nameof(Count));
+                    return _item;
+                }
+                set => throw CollectionExceptions.ReadOnlyException();
+            }
+
+            public override void Insert(int index, T item)
+            {
+                throw CollectionExceptions.ReadOnlyException();
+            }
+
+            public override bool Remove(T item)
+            {
+                throw CollectionExceptions.ReadOnlyException();
+            }
+
+            public override void RemoveAt(int index)
+            {
+                throw CollectionExceptions.ReadOnlyException();
+            }
+
+            public override void Add(T item)
+            {
+                throw CollectionExceptions.ReadOnlyException();
+            }
+
+            public override void Clear()
+            {
+                throw CollectionExceptions.ReadOnlyException();
+            }
+        }
 
         public static ISetCollection<T> AsSetCollection<T>(this ISet<T> instance)
         {
@@ -242,6 +363,162 @@ namespace Utility
                 throw new ArgumentNullException(nameof(instance));
 
             return new SetCollection<T>(instance);
+        }
+
+        private sealed class CastListWrapper<TResult> : ListBase<TResult>
+        {
+            private readonly IList _innerList;
+
+            public CastListWrapper(IList innerList)
+            {
+                if (innerList == null)
+                    throw new ArgumentNullException(nameof(innerList));
+
+                _innerList = innerList;
+            }
+
+            public override TResult this[int index]
+            {
+                get => (TResult)_innerList[index];
+                set => _innerList[index] = value;
+            }
+
+            public override int Count => _innerList.Count;
+
+            public override bool IsReadOnly => _innerList.IsReadOnly || _innerList.IsFixedSize;
+
+            public override void Clear()
+            {
+                _innerList.Clear();
+            }
+
+            public override IEnumerator<TResult> GetEnumerator()
+            {
+                return _innerList.Cast<TResult>().GetEnumerator();
+            }
+
+            public override int IndexOf(TResult item)
+            {
+                return _innerList.IndexOf(item);
+            }
+
+            public override void Insert(int index, TResult item)
+            {
+                _innerList.Insert(index, item);
+            }
+
+            public override void RemoveAt(int index)
+            {
+                _innerList.RemoveAt(index);
+            }
+
+            public override bool Remove(TResult item)
+            {
+                int c = _innerList.Count;
+                _innerList.Remove(item);
+
+                return c != _innerList.Count;
+            }
+
+            protected override bool IsFixedSize => _innerList.IsFixedSize;
+            protected override object SyncRoot => _innerList.IsSynchronized ? _innerList.SyncRoot : null;
+
+            public override bool Contains(TResult item)
+            {
+                return _innerList.Contains(item);
+            }
+
+            public override void Add(TResult item)
+            {
+                _innerList.Add(item);
+            }
+
+            public override void CopyTo(TResult[] array, int arrayIndex)
+            {
+                _innerList.CopyTo(array, arrayIndex);
+            }
+        }
+
+        private sealed class CastListWrapper<TSource, TResult> : ListBase<TResult>
+            where TResult : TSource
+        {
+            private readonly IList<TSource> _innerList;
+
+            public CastListWrapper(IList<TSource> innerList)
+            {
+                if (innerList == null)
+                    throw new ArgumentNullException(nameof(innerList));
+
+                _innerList = innerList;
+            }
+
+            public override TResult this[int index]
+            {
+                get => (TResult)_innerList[index];
+                set => _innerList[index] = value;
+            }
+
+            public override int Count => _innerList.Count;
+
+            public override bool IsReadOnly => _innerList.IsReadOnly;
+
+            public override void Clear()
+            {
+                _innerList.Clear();
+            }
+
+            public override IEnumerator<TResult> GetEnumerator()
+            {
+                return _innerList.Cast<TResult>().GetEnumerator();
+            }
+
+            public override int IndexOf(TResult item)
+            {
+                return _innerList.IndexOf(item);
+            }
+
+            public override void Insert(int index, TResult item)
+            {
+                _innerList.Insert(index, item);
+            }
+
+            public override void RemoveAt(int index)
+            {
+                _innerList.RemoveAt(index);
+            }
+
+            public override bool Remove(TResult item)
+            {
+                int c = _innerList.Count;
+                _innerList.Remove(item);
+
+                return c != _innerList.Count;
+            }
+
+            protected override bool IsFixedSize => _innerList.IsFixedSize();
+            protected override object SyncRoot => _innerList is IList l && l.IsSynchronized ? l.SyncRoot : null;
+
+            public override bool Contains(TResult item)
+            {
+                return _innerList.Contains(item);
+            }
+
+            public override void Add(TResult item)
+            {
+                _innerList.Add(item);
+            }
+
+            public override void CopyTo(TResult[] array, int arrayIndex)
+            {
+                TSource[] src = array as TSource[];
+
+                if (src != null)
+                    _innerList.CopyTo(src, arrayIndex);
+                else
+                {
+                    base.CopyTo(array, arrayIndex);
+                }
+            }
         }
 
         private sealed class SetCollection<T> : ISetCollection<T>, ISet<T>

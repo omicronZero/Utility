@@ -222,7 +222,7 @@ namespace Utility
                 {
                     int c = e.NewStartingIndex + e.NewItems.Count;
 
-                    copy?.InsertRange(e.NewStartingIndex, new ListAccessor<T>((i) => (T)e.NewItems[i], () => e.NewItems.Count, false));
+                    copy?.InsertRange(e.NewStartingIndex, new DelegateList<T>((i) => (T)e.NewItems[i], () => e.NewItems.Count, false));
 
                     for (int i = e.NewStartingIndex; i < c; i++)
                         bindingListEvent(this, new ListChangedEventArgs(ListChangedType.ItemAdded, i));
@@ -230,7 +230,7 @@ namespace Utility
                 else if (e.Action == NotifyCollectionChangedAction.Move)
                 {
                     copy?.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                    copy?.InsertRange(e.NewStartingIndex, new ListAccessor<T>((i) => (T)e.NewItems[i], () => e.NewItems.Count, false));
+                    copy?.InsertRange(e.NewStartingIndex, new DelegateList<T>((i) => (T)e.NewItems[i], () => e.NewItems.Count, false));
 
                     int c = e.OldItems.Count;
                     int oind = e.OldStartingIndex;
@@ -251,7 +251,7 @@ namespace Utility
                 else if (e.Action == NotifyCollectionChangedAction.Replace)
                 {
                     copy?.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                    copy?.InsertRange(e.NewStartingIndex, new ListAccessor<T>((i) => (T)e.NewItems[i], () => e.NewItems.Count, false));
+                    copy?.InsertRange(e.NewStartingIndex, new DelegateList<T>((i) => (T)e.NewItems[i], () => e.NewItems.Count, false));
 
                     int c = e.OldItems.Count;
                     int oind = e.OldStartingIndex;
