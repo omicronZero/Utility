@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Utility.Collections;
+using Utility.Collections.Adapters;
 using Utility.Collections.Tools;
-using Utility.Workflow.Collections.Adapters;
 
-namespace Utility.Workflow.Collections.Special
+namespace Utility.Collections.Special
 {
     public class OverflowingBuffer<T> : IList<T>, IReadOnlyList<T>, IList
     {

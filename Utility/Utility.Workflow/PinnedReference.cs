@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Utility.Workflow
+namespace Utility
 {
     public sealed class PinnedReference<T> : IDisposable
         where T : unmanaged
@@ -41,7 +41,7 @@ namespace Utility.Workflow
         private void ThrowDisposed()
         {
             if (_disposed == 1)
-                throw new ObjectDisposedException(this.GetType().Name);
+                throw new ObjectDisposedException(GetType().Name);
         }
 
         ~PinnedReference()

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Workflow.Collections.Adapters
+namespace Utility.Collections.Adapters
 {
     public abstract class ListBase<T> : CollectionBase<T>, IList<T>, IReadOnlyList<T>, IList
     {

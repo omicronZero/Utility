@@ -77,7 +77,7 @@ namespace Utility.Tests.Collection
         {
             var objects = new List<object>();
 
-            IList<string> strings = ListExtensions.CastList<string>((IList)objects);
+            IList<string> strings = EnumerableExtensions.CastList<string>((IList)objects);
 
             //this call to CallList recognizes that the TResult : TSource relation is given on IList<TSource> despite receiving an IList object
             //The test thus is the same as the one above
@@ -128,7 +128,7 @@ namespace Utility.Tests.Collection
         {
             var objects = new List<string>();
 
-            IList<object> strings = ListExtensions.CastList<object>((IList)objects);
+            IList<object> strings = EnumerableExtensions.CastList<object>((IList)objects);
 
             //this call to CallList recognizes that the TResult : TSource relation is not given on IList<TSource> and thus
             //and thus behaves differently returning an object that is processed on IList

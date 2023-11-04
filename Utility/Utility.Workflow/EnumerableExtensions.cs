@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Utility.Collections;
+using Utility.Collections.Adapters;
 using Utility.Collections.Tools;
 using Utility.Reflection;
-using Utility.Workflow.Collections.Adapters;
 
 namespace Utility
 {
@@ -259,6 +260,18 @@ namespace Utility
         public static IList<T> Single<T>(T item)
         {
             return new SingleItemList<T>(item);
+        }
+
+        public static bool AnyNull<T>(this IEnumerable<T> enumerable)
+        {
+            if (enumerable is null)
+                throw new ArgumentNullException(nameof(enumerable));
+
+            foreach (var element in enumerable)
+                if (element is null)
+                    return true;
+
+            return false;
         }
 
         public static IList<TResult> CastList<TSource, TResult>(this IList<TSource> list)

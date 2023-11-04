@@ -20,7 +20,7 @@ namespace Utility.ObjectDescription
         { }
 
         public ObservableCollectionChangedEventArgs(NotifyCollectionChangedAction action, T changedItem)
-            : this(action, ListExtensions.Single(changedItem))
+            : this(action, EnumerableExtensions.Single(changedItem))
         { }
 
         public ObservableCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList<T> newItems, IList<T> oldItems)
@@ -32,11 +32,11 @@ namespace Utility.ObjectDescription
         { }
 
         public ObservableCollectionChangedEventArgs(NotifyCollectionChangedAction action, T changedItem, int index)
-            : this(action, ListExtensions.Single(changedItem), index)
+            : this(action, EnumerableExtensions.Single(changedItem), index)
         { }
 
         public ObservableCollectionChangedEventArgs(NotifyCollectionChangedAction action, T newItem, T oldItem)
-            : this(action, ListExtensions.Single(newItem), ListExtensions.Single(oldItem))
+            : this(action, EnumerableExtensions.Single(newItem), EnumerableExtensions.Single(oldItem))
         { }
 
         public ObservableCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList<T> newItems, IList<T> oldItems, int startingIndex)
@@ -48,11 +48,11 @@ namespace Utility.ObjectDescription
         { }
 
         public ObservableCollectionChangedEventArgs(NotifyCollectionChangedAction action, T changedItem, int index, int oldIndex)
-            : this(action, ListExtensions.Single(changedItem), index, oldIndex)
+            : this(action, EnumerableExtensions.Single(changedItem), index, oldIndex)
         { }
 
         public ObservableCollectionChangedEventArgs(NotifyCollectionChangedAction action, T newItem, T oldItem, int index)
-            : this(action, ListExtensions.Single(newItem), ListExtensions.Single(oldItem), index)
+            : this(action, EnumerableExtensions.Single(newItem), EnumerableExtensions.Single(oldItem), index)
         { }
 
         public static ObservableCollectionChangedEventArgs<T> Reset()

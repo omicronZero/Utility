@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utility.Workflow.Collections.Labeled
+namespace Utility.Collections.Labeled
 {
     public class LabelChangedEventArgs : EventArgs
     {

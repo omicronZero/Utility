@@ -2,8 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Utility.Collections.Adapters;
 using Utility.Collections.Tools;
-using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.Collections
 {
@@ -20,7 +20,7 @@ namespace Utility.Collections
         }
     }
 
-    public struct SelectorCollection<T, TUnderlying> : ICollection<T>, ICollection
+    public struct SelectorCollection<T, TUnderlying> : ICollection<T>, ICollection, IReadOnlyCollection<T>
     {
         private readonly ICollection<TUnderlying> _underlyingCollection;
         private readonly Func<TUnderlying, T> _selector;

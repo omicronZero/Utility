@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Utility.Collections.ObjectModel
 {
-    public class SelectingObservableCollection<T, TInner> : ICollection<T>, INotifyCollectionChanged, IDisposable
+    public class SelectingObservableCollection<T, TInner> : ICollection<T>, IReadOnlyCollection<T>, INotifyCollectionChanged, IDisposable
     {
 
         private readonly ICollection<TInner> _innerList;

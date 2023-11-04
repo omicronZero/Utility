@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Workflow.Collections.Dataflow
+namespace Utility.Collections.Objectflow
 {
     public class StackBack<T>
     {

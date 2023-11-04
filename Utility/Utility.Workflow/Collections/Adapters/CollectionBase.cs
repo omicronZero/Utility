@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using Utility.Collections.Tools;
 
-namespace Utility.Workflow.Collections.Adapters
+namespace Utility.Collections.Adapters
 {
     public abstract class CollectionBase<T> : ICollection, ICollection<T>, IReadOnlyCollection<T>
     {

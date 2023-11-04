@@ -275,6 +275,32 @@ for(int n = minimum; n <= maximum; n++)
 			throw new InvalidOperationException("The current instance has not been initialized to a value.");
 		}
 
+		private static void ThrowTypeIndex(int requested, int actual)
+		{
+			throw new InvalidOperationException($"The requested value was { requested } but the actual value is { actual }.");
+		}
+
+		<#
+		for(int i = 1; i <= n; i++)
+		{
+		#>
+
+		public bool HasValue<#=i#> => TypeIndex == <#=i#>;
+		
+		public T<#=i#> Value<#=i#>
+		{
+			get
+			{
+				if (TypeIndex != <#=i#>)
+					ThrowTypeIndex(<#=i#>, TypeIndex);
+
+				return _value<#=i#>;
+			}
+		}
+		<#
+		}
+		#>
+
 		public T Cast<T>()
 		{
 			<#

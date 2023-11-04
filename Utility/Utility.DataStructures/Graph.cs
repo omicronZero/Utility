@@ -319,9 +319,9 @@ namespace Utility.DataStructures
         public class NodeEdgesCollection : ICollection<TNode>
         {
             private readonly Graph<TNode> _graph;
-            internal GraphInt64.NodeEdgeCollection ConnectedNodes { get; }
+            internal GraphInt64.NodeEdgesCollection ConnectedNodes { get; }
 
-            internal NodeEdgesCollection(Graph<TNode> graph, GraphInt64.NodeEdgeCollection connectedNodes)
+            internal NodeEdgesCollection(Graph<TNode> graph, GraphInt64.NodeEdgesCollection connectedNodes)
             {
                 _graph = graph ?? throw new ArgumentNullException(nameof(graph));
                 ConnectedNodes = connectedNodes ?? throw new ArgumentNullException(nameof(connectedNodes));

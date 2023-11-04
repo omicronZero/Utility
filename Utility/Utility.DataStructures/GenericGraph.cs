@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace Utility.DataStructures
@@ -13,12 +14,12 @@ namespace Utility.DataStructures
         private NodeCollection _nodes;
         private EdgeCollection _edges;
 
-        private readonly Dictionary<TNode, (NodeEdgesCollection Ins, NodeEdgesCollection Outs)> _nodeInsOuts;
+        internal Dictionary<TNode, (NodeEdgesCollection Ins, NodeEdgesCollection Outs)> NodeInsOuts { get; }
 
         public GenericGraph(IGraph<TNode> graph)
         {
             _graph = graph ?? throw new ArgumentNullException(nameof(graph));
-            _nodeInsOuts = new Dictionary<TNode, (NodeEdgesCollection, NodeEdgesCollection)>();
+            NodeInsOuts = new Dictionary<TNode, (NodeEdgesCollection, NodeEdgesCollection)>();
         }
 
         public GenericGraph(bool isDirected)
@@ -62,7 +63,7 @@ namespace Utility.DataStructures
 
         private void GetInsOuts(TNode node, out NodeEdgesCollection ins, out NodeEdgesCollection outs)
         {
-            if (!_nodeInsOuts.TryGetValue(node, out var nodeInsOuts))
+            if (!NodeInsOuts.TryGetValue(node, out var nodeInsOuts))
             {
                 var innerIns = _graph.GetIns(node);
                 var innerOuts = _graph.GetOuts(node);
@@ -92,25 +93,33 @@ namespace Utility.DataStructures
                     ins = outs = null;
                 }
 
-                _nodeInsOuts.Add(node, (ins, outs));
+                NodeInsOuts.Add(node, (ins, outs));
             }
 
             (ins, outs) = nodeInsOuts;
         }
 
-        public IEnumerable<TNode> GetIns(TNode node)
+        protected Dictionary<TNode, (NodeEdgesCollection Ins, NodeEdgesCollection Outs)> GetInOutDict()
+        {
+            return new Dictionary<TNode, (NodeEdgesCollection, NodeEdgesCollection)>(NodeInsOuts);
+        }
+
+        public NodeEdgesCollection GetIns(TNode node)
         {
             GetInsOuts(node, out var value, out _);
 
             return value;
         }
 
-        public IEnumerable<TNode> GetOuts(TNode node)
+        public NodeEdgesCollection GetOuts(TNode node)
         {
             GetInsOuts(node, out _, out var value);
 
             return value;
         }
+
+        IEnumerable<TNode> IGraph<TNode>.GetIns(TNode node) => GetIns(node);
+        IEnumerable<TNode> IGraph<TNode>.GetOuts(TNode node) => GetOuts(node);
 
         protected virtual bool AddNode(TNode node)
         {
@@ -122,13 +131,14 @@ namespace Utility.DataStructures
             if (!_graph.Nodes.Remove(node))
                 return false;
 
-            _nodeInsOuts.Remove(node);
+            NodeInsOuts.Remove(node);
             return true;
         }
 
         protected virtual void ClearNodes()
         {
             _graph.Nodes.Clear();
+            NodeInsOuts.Clear();
         }
 
         protected virtual bool AddEdge(Edge<TNode> edge)
@@ -137,7 +147,7 @@ namespace Utility.DataStructures
         }
 
         protected virtual bool RemoveEdge(Edge<TNode> edge)
-        {
+        { 
             return _graph.Edges.Remove(edge);
         }
 
@@ -204,6 +214,30 @@ namespace Utility.DataStructures
                 Graph.ClearNodes();
             }
 
+            internal void InternalOnNodeAdded(TNode item)
+            {
+                OnNodeAdded(item);
+            }
+
+            internal void InternalOnNodeRemoved(TNode node)
+            {
+                OnNodeRemoved(node);
+            }
+
+            internal void InternalOnNodesCleared(TNode[] nodes)
+            {
+                OnNodesCleared(Array.AsReadOnly(nodes));
+            }
+
+            protected virtual void OnNodeAdded(TNode item)
+            { }
+
+            protected virtual void OnNodeRemoved(TNode node)
+            { }
+
+            protected virtual void OnNodesCleared(IList<TNode> nodes)
+            { }
+
             protected virtual bool ContainsCore(TNode item) => Graph._graph.Nodes.Contains(item);
 
             public int Count
@@ -245,6 +279,7 @@ namespace Utility.DataStructures
             public void CopyTo(TNode[] array, int arrayIndex)
             {
                 CheckInitialized();
+                Graph.Nodes.CopyTo(array, arrayIndex);
             }
 
             public IEnumerator<TNode> GetEnumerator()
@@ -286,6 +321,30 @@ namespace Utility.DataStructures
                     throw UninitializedException();
             }
 
+            protected virtual void OnEdgeAdded(Edge<TNode> edge)
+            { }
+
+            protected virtual void OnEdgeRemoved(Edge<TNode> edge)
+            { }
+
+            protected virtual void OnEdgesCleared(ICollection<Edge<TNode>> edges)
+            { }
+
+            internal void InternalOnEdgeAdded(Edge<TNode> edge)
+            {
+                OnEdgeAdded(edge);
+            }
+
+            internal void InternalOnEdgeRemoved(Edge<TNode> edge)
+            {
+                OnEdgeRemoved(edge);
+            }
+
+            internal void InternalOnEdgesCleared(Edge<TNode>[] edges)
+            {
+                OnEdgesCleared(Array.AsReadOnly(edges));
+            }
+
             protected virtual bool OnRemoveEdge(Edge<TNode> item)
             {
                 return Graph.RemoveEdge(item);
@@ -298,7 +357,7 @@ namespace Utility.DataStructures
 
             protected virtual void OnClearEdges()
             {
-                Graph.ClearNodes();
+                Graph.ClearEdges();
             }
 
             protected virtual bool ContainsCore(Edge<TNode> item) => Graph._graph.Edges.Contains(item);
@@ -342,6 +401,7 @@ namespace Utility.DataStructures
             public void CopyTo(Edge<TNode>[] array, int arrayIndex)
             {
                 CheckInitialized();
+                Graph.Edges.CopyTo(array, arrayIndex);
             }
 
             public IEnumerator<Edge<TNode>> GetEnumerator()
@@ -371,8 +431,8 @@ namespace Utility.DataStructures
         public class NodeEdgesCollection : ISetCollection<TNode>
         {
             private bool _isTarget;
-            internal GenericGraph<TNode> Graph { get; private set; }
-            internal ICollection<TNode> _innerEnumerable;
+            public GenericGraph<TNode> Graph { get; private set; }
+            internal ICollection<TNode> _innerCollection;
             private TNode _node;
 
             internal void Initialize(GenericGraph<TNode> graph, TNode node, ICollection<TNode> collection, bool isTarget)
@@ -380,7 +440,7 @@ namespace Utility.DataStructures
                 _isTarget = isTarget;
                 Graph = graph;
                 _node = node;
-                _innerEnumerable = collection;
+                _innerCollection = collection;
             }
 
             protected ICollection<TNode> InnerEnumerable
@@ -388,7 +448,7 @@ namespace Utility.DataStructures
                 get
                 {
                     CheckInitialized();
-                    return _innerEnumerable;
+                    return _innerCollection;
                 }
             }
 
@@ -405,6 +465,30 @@ namespace Utility.DataStructures
             {
                 if (Graph == null)
                     throw UninitializedException();
+            }
+
+            protected virtual void OnNodeAdded(Edge<TNode> edge)
+            { }
+
+            protected virtual void OnNodeRemoved(Edge<TNode> edge)
+            { }
+
+            protected virtual void OnNodesCleared(object state = null)
+            { }
+
+            internal void InternalOnNodeAdded(Edge<TNode> edge)
+            {
+                OnNodeAdded(edge);
+            }
+
+            internal void InternalOnNodeRemoved(Edge<TNode> edge)
+            {
+                OnNodeRemoved(edge);
+            }
+
+            internal void InternalOnNodesCleared()
+            {
+                OnNodesCleared();
             }
 
             protected virtual bool OnAddNode(Edge<TNode> edge)
@@ -447,7 +531,7 @@ namespace Utility.DataStructures
                 get
                 {
                     CheckInitialized();
-                    return _innerEnumerable.Count;
+                    return _innerCollection.Count;
                 }
             }
 
@@ -456,7 +540,7 @@ namespace Utility.DataStructures
                 get
                 {
                     CheckInitialized();
-                    return _innerEnumerable.IsReadOnly;
+                    return _innerCollection.IsReadOnly;
                 }
             }
 
@@ -488,7 +572,7 @@ namespace Utility.DataStructures
             public void CopyTo(TNode[] array, int arrayIndex)
             {
                 CheckInitialized();
-                _innerEnumerable.CopyTo(array, arrayIndex);
+                _innerCollection.CopyTo(array, arrayIndex);
             }
 
             public bool Remove(TNode item)
@@ -500,7 +584,7 @@ namespace Utility.DataStructures
             public IEnumerator<TNode> GetEnumerator()
             {
                 CheckInitialized();
-                return _innerEnumerable.GetEnumerator();
+                return _innerCollection.GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()

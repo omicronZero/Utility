@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utility.Workflow.Collections.Adapters;
+using Utility.Collections.Adapters;
 using Xunit;
 
 namespace Utility.Tests.Collection

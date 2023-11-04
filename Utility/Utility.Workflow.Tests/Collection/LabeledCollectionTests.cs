@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Utility.Workflow.Collections.Labeled;
+using Utility.Collections.Labeled;
 using Xunit;
 
 namespace Utility.Tests.Collection

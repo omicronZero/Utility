@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using Utility.Collections;
 
-namespace Utility.Workflow.Collections.Labeled
+namespace Utility.Collections.Labeled
 {
-    public class LabeledCollection<T> : Utility.Collections.Collection<T>, ILabeled
+    public class LabeledCollection<T> : Collection<T>, ILabeled
     {
         private static readonly Comparer<Label> Comparer = Comparer<Label>.Create((l, r) => l.Index.CompareTo(r.Index));
         private Label[] _labels;

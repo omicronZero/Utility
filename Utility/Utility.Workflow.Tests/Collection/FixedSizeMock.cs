@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Utility.Workflow.Collections.Adapters;
+using Utility.Collections.Adapters;
 
 namespace Utility.Tests.Collection
 {

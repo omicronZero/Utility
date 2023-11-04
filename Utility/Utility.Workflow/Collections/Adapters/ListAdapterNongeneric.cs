@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Workflow.Collections.Adapters
+namespace Utility.Collections.Adapters
 {
     public struct ListAdapterNongeneric<TItem, TList> : IList
         where TList : IList<TItem>

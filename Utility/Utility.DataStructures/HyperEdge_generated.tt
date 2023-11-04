@@ -1,0 +1,87 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<#
+	const string node1 = "node1";
+	const string node2 = "node2";
+	const string Node1 = "Node1";
+	const string Node2 = "Node2";
+#>
+
+using Utility.Collections;
+
+namespace Utility
+{
+	partial class HyperEdge
+	{
+	<#
+
+	for (int i = 1; i <= 7; i++)
+	{
+		for (int j = 1; j <= 7; j++)
+		{
+			var ltargs = Enumerable.Range(1, i).Select((k) => "TNode").ToArray();
+			var rtargs = Enumerable.Range(1, j).Select((k) => "TNode").ToArray();
+			var lpargs = Enumerable.Range(1, i).Select((k) => node1 +".Item" + k).ToArray();
+			var rpargs = Enumerable.Range(1, j).Select((k) => node2 +".Item" + k).ToArray();
+
+			var lt = i == 1 ? "TNode" : "(" + string.Join(", ", ltargs) + ")";
+			var rt = j == 1 ? "TNode" : "(" + string.Join(", ", rtargs) + ")";
+	#>
+	
+		public static HyperEdge<TNode> Create<TNode>(
+			<#=lt#> <#=node1#>,
+			<#=rt#> <#=node2#>)
+		{
+			return new HyperEdge<TNode>(<#=node1#>, <#=node2#>);
+		}
+	<#
+		}
+	}
+	#>
+	}
+
+	partial struct HyperEdge<TNode>
+	{
+	<#
+
+	for (int i = 1; i <= 7; i++)
+	{
+		for (int j = 1; j <= 7; j++)
+		{
+			if (i == 1 && j == 1)
+				continue;
+
+			var ltargs = Enumerable.Range(1, i).Select((k) => "TNode").ToArray();
+			var rtargs = Enumerable.Range(1, j).Select((k) => "TNode").ToArray();
+			var lpargs = Enumerable.Range(1, i).Select((k) => node1 +".Item" + k).ToArray();
+			var rpargs = Enumerable.Range(1, j).Select((k) => node2 +".Item" + k).ToArray();
+
+			var lt = i == 1 ? "TNode" : "(" + string.Join(", ", ltargs) + ")";
+			var rt = j == 1 ? "TNode" : "(" + string.Join(", ", rtargs) + ")";
+			var lp = i == 1 ? "node1" : string.Join(", ", lpargs);
+			var rp = j == 1 ? "node2" : string.Join(", ", rpargs);
+	#>
+	
+		public HyperEdge(<#=lt#> <#=node1#>,
+						 <#=rt#> <#=node2#>)
+			: this(new Set<TNode>(<#=lp#>),
+				   new Set<TNode>(<#=rp#>))
+		{ }
+
+		public static implicit operator HyperEdge<TNode>(
+			(<#=lt#> <#=Node1#>,
+			 <#=rt#> <#=Node2#>) value)
+		{
+			return new HyperEdge<TNode>(value.<#=Node1#>, value.<#=Node2#>);
+		}
+	<#
+		}
+	}
+	#>
+
+	}
+}

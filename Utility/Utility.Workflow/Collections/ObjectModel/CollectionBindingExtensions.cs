@@ -10,7 +10,7 @@ namespace Utility.Collections.ObjectModel
 {
     public static class CollectionBindingExtensions
     {
-        public static IDisposable BindUnorderedTo<TTarget, TSource>(this ICollection<TTarget> targetCollection, ICollection<TSource> sourceCollection, Func<TSource, TTarget> selector)
+        public static IDisposable BindUnorderedTo<TTarget, TSource>(this ICollection<TTarget> targetCollection, IEnumerable<TSource> sourceCollection, Func<TSource, TTarget> selector, Action<TTarget> disposer = null)
         {
             if (sourceCollection == null)
                 throw new ArgumentNullException(nameof(sourceCollection));
@@ -19,10 +19,10 @@ namespace Utility.Collections.ObjectModel
             if (selector == null)
                 throw new ArgumentNullException(nameof(selector));
 
-            return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, true);
+            return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, disposer, true);
         }
 
-        public static IDisposable BindTo<TTarget, TSource>(this IList<TTarget> targetCollection, IList<TSource> sourceCollection, Func<TSource, TTarget> selector)
+        public static IDisposable BindTo<TTarget, TSource>(this IList<TTarget> targetCollection, IList<TSource> sourceCollection, Func<TSource, TTarget> selector, Action<TTarget> disposer = null)
         {
             if (sourceCollection == null)
                 throw new ArgumentNullException(nameof(sourceCollection));
@@ -31,9 +31,9 @@ namespace Utility.Collections.ObjectModel
             if (selector == null)
                 throw new ArgumentNullException(nameof(selector));
 
-            return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, false);
+            return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, disposer, false);
         }
-        public static IDisposable BindUnorderedToOrReset<TTarget, TSource>(this ICollection<TTarget> targetCollection, ICollection<TSource> sourceCollection, Func<TSource, TTarget> selector)
+        public static IDisposable BindUnorderedToOrReset<TTarget, TSource>(this ICollection<TTarget> targetCollection, IEnumerable<TSource> sourceCollection, Func<TSource, TTarget> selector, Action<TTarget> disposer = null)
         {
             if (sourceCollection == null)
                 throw new ArgumentNullException(nameof(sourceCollection));
@@ -43,7 +43,7 @@ namespace Utility.Collections.ObjectModel
                 throw new ArgumentNullException(nameof(selector));
 
             if (targetCollection is INotifyCollectionChanged)
-                return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, true);
+                return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, disposer, true);
             else
             {
                 targetCollection.Clear();
@@ -54,7 +54,7 @@ namespace Utility.Collections.ObjectModel
             }
         }
 
-        public static IDisposable BindToOrReset<TTarget, TSource>(this IList<TTarget> targetCollection, IList<TSource> sourceCollection, Func<TSource, TTarget> selector)
+        public static IDisposable BindToOrReset<TTarget, TSource>(this IList<TTarget> targetCollection, IList<TSource> sourceCollection, Func<TSource, TTarget> selector, Action<TTarget> disposer = null)
         {
             if (sourceCollection == null)
                 throw new ArgumentNullException(nameof(sourceCollection));
@@ -64,7 +64,7 @@ namespace Utility.Collections.ObjectModel
                 throw new ArgumentNullException(nameof(selector));
 
             if (targetCollection is INotifyCollectionChanged)
-                return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, false);
+                return new NotifyCollectionChangedBinder<TTarget, TSource>(targetCollection, sourceCollection, selector, disposer, false);
             else
             {
                 targetCollection.Clear();
@@ -80,20 +80,23 @@ namespace Utility.Collections.ObjectModel
             private bool _disposed;
 
             private readonly ICollection<TTarget> _targetCollection;
-            private readonly ICollection<TSource> _sourceCollection;
+            private readonly IEnumerable<TSource> _sourceCollection;
             private readonly Func<TSource, TTarget> _selector;
+            private readonly Action<TTarget> _disposer;
             private readonly bool _unordered;
 
             public NotifyCollectionChangedBinder(
                 ICollection<TTarget> targetCollection,
-                ICollection<TSource> sourceCollection,
+                IEnumerable<TSource> sourceCollection,
                 Func<TSource, TTarget> selector,
+                Action<TTarget> disposer,
                 bool unordered)
             {
                 _targetCollection = targetCollection ?? throw new ArgumentNullException(nameof(targetCollection));
                 _sourceCollection = sourceCollection ?? throw new ArgumentNullException(nameof(sourceCollection));
                 _selector = selector ?? throw new ArgumentNullException(nameof(selector));
                 _unordered = unordered || !(_targetCollection is IList<TTarget>);
+                _disposer = disposer;
 
                 if (!(sourceCollection is INotifyCollectionChanged ntfy))
                     throw new ArgumentException("The source collection must be observable.", nameof(sourceCollection));
@@ -104,7 +107,18 @@ namespace Utility.Collections.ObjectModel
 
             public void Reset()
             {
-                _targetCollection.Clear();
+                if (_disposer == null)
+                {
+                    _targetCollection.Clear();
+                }
+                else
+                {
+                    var items = _targetCollection.ToArray();
+                    _targetCollection.Clear();
+
+                    foreach (var item in items)
+                        _disposer(item);
+                }
 
                 foreach (var item in _sourceCollection)
                     _targetCollection.Add(_selector(item));
@@ -149,14 +163,34 @@ namespace Utility.Collections.ObjectModel
                         int c = coll.Count;
 
                         for (int i = e.NewStartingIndex + c - 1; i >= 0; i--)
+                        {
+                            var oldItem = targetList![i];
                             targetList!.RemoveAt(i);
+                            _disposer?.Invoke(oldItem);
+                        }
                     }
                     else
                     {
                         int i = e.NewStartingIndex;
 
-                        foreach (var _ in oldItems)
-                            targetList!.RemoveAt(i);
+                        var disposer = _disposer;
+
+                        if (disposer == null)
+                        {
+                            foreach (var _ in oldItems)
+                            {
+                                targetList!.RemoveAt(i);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var item in oldItems)
+                            {
+                                var oldItem = _selector(item);
+                                targetList!.RemoveAt(i);
+                                disposer?.Invoke(oldItem);
+                            }
+                        }
                     }
                 }
                 else if (e.Action == NotifyCollectionChangedAction.Move)
@@ -184,7 +218,7 @@ namespace Utility.Collections.ObjectModel
 
                     for (int i = 0; i < count; i++)
                     {
-                        targetList!.Insert(i, items[i]);
+                        targetList!.Insert(newIndex + i, items[i]);
                     }
                 }
                 else if (e.Action == NotifyCollectionChangedAction.Replace)
@@ -198,7 +232,9 @@ namespace Utility.Collections.ObjectModel
 
                         foreach (var item in oldItems)
                         {
-                            _targetCollection.Remove(_selector(item));
+                            var oldItem = _selector(item);
+                            _targetCollection.Remove(oldItem);
+                            _disposer?.Invoke(oldItem);
                         }
 
                         foreach (var item in newItems)
@@ -211,7 +247,11 @@ namespace Utility.Collections.ObjectModel
                         int i = e.NewStartingIndex;
 
                         foreach (var item in newItems)
+                        {
+                            var oldItem = targetList![i];
                             targetList![i++] = _selector(item);
+                            _disposer?.Invoke(oldItem);
+                        }
                     }
                 }
             }

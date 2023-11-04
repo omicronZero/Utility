@@ -4,9 +4,3 @@
 - Copy files with temporary backup
 - Allow stride in array segments (allow items to be between "rows")
 - Merge ArrayBuffer and ArrayAccess
-- Unions: AnyOf<T1, T2, T3, ...>
-    - use index to encode which value it was. Specially handle default case (index = 0)
-    - implicit conversion of
-        - T1, T2, ...
-        - AnyOf<T1, T2, ..., T[n]> to AnyOf<T1, T2, ..., T[n], ...>
-        - AnyOf<S1, ..., S[k], AnyOf<T1, ..., T[n]>, S[k+1], ..., S[m]> to AnyOf<S1, ..., S[k], T1, ..., T[n], S[k+1], S[m]> and vice versa

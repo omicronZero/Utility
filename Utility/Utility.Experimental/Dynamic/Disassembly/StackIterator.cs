@@ -13,7 +13,7 @@ namespace Utility.Dynamic.Disassembly
     {
         private readonly MethodManipulator _method;
         private readonly List<StackEntry> _stack;
-        private readonly Workflow.Collections.Labeled.Label _label;
+        private readonly Collections.Labeled.Label _label;
         private readonly IList<StackEntry> _exposedStack;
 
         public IList<StackEntry> Stack

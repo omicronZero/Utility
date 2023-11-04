@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utility.Workflow.Collections.Adapters;
+using Utility.Collections.Adapters;
 
 namespace Utility.DataStructures.Specialized
 {
     public class GraphInt64 : IGraph<long>
     {
         //TODO: merge IdMappingInt64 with the Id management in Utility.Experimental.Utils as soon as they are no longer experimental
+        //TODO: change Id type from long to Id
 
         //TODO: share HashSet on undirected nodes' edge collection
         public NodeCollection Nodes { get; }
@@ -29,7 +30,7 @@ namespace Utility.DataStructures.Specialized
             Edges = new EdgeCollection(this);
         }
 
-        public NodeEdgeCollection GetIns(long node)
+        public NodeEdgesCollection GetIns(long node)
         {
             if (!_nodes.TryGetValue(node, out var pair))
                 throw GraphDoesNotContainNode();
@@ -37,7 +38,7 @@ namespace Utility.DataStructures.Specialized
             return pair.Ins;
         }
 
-        public NodeEdgeCollection GetOuts(long node)
+        public NodeEdgesCollection GetOuts(long node)
         {
             if (!_nodes.TryGetValue(node, out var pair))
                 throw GraphDoesNotContainNode();
@@ -184,6 +185,7 @@ namespace Utility.DataStructures.Specialized
                 nd.Outs.Detach();
             }
 
+            _edges.Clear();
             _nodes.Clear();
         }
 
@@ -193,8 +195,8 @@ namespace Utility.DataStructures.Specialized
                 return false;
 
             _nodes.Add(item, new NodeEdgePair(
-                new NodeEdgeCollection(this, item, true),
-                new NodeEdgeCollection(this, item, false)));
+                new NodeEdgesCollection(this, item, true),
+                new NodeEdgesCollection(this, item, false)));
 
             return true;
         }
@@ -329,7 +331,7 @@ namespace Utility.DataStructures.Specialized
             }
         }
 
-        public sealed class NodeEdgeCollection : CollectionBase<long>, ISetCollection<long>
+        public sealed class NodeEdgesCollection : CollectionBase<long>, ISetCollection<long>
         {
             //the current class contains only wrapper methods propagated to the edge collection
             //AttachedNodes is to be kept synchronized with Edges
@@ -340,7 +342,7 @@ namespace Utility.DataStructures.Specialized
             internal HashSet<long> AttachedNodes { get; private set; }
             private GraphInt64 _graph;
 
-            internal NodeEdgeCollection(GraphInt64 graph, long node, bool isTarget)
+            internal NodeEdgesCollection(GraphInt64 graph, long node, bool isTarget)
             {
                 _graph = graph ?? throw new ArgumentNullException(nameof(graph));
 
@@ -460,10 +462,10 @@ namespace Utility.DataStructures.Specialized
 
         private struct NodeEdgePair
         {
-            public NodeEdgeCollection Ins { get; }
-            public NodeEdgeCollection Outs { get; }
+            public NodeEdgesCollection Ins { get; }
+            public NodeEdgesCollection Outs { get; }
 
-            public NodeEdgePair(NodeEdgeCollection ins, NodeEdgeCollection outs)
+            public NodeEdgePair(NodeEdgesCollection ins, NodeEdgesCollection outs)
             {
                 Ins = ins;
                 Outs = outs;

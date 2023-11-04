@@ -1150,6 +1150,36 @@ namespace Utility.DataStructures
             Assert.Equal(3, graph.Edges.Count);
         }
 
+        [Fact]
+        public void TestDirectedNodesClearAndSwipeEdges()
+        {
+            var graph = new Graph<int>(true);
+
+            graph.Nodes.Add(1);
+            graph.Nodes.Add(2);
+            graph.Nodes.Add(3);
+            graph.Nodes.Add(4);
+
+            graph.Edges.AddSet((1, 2), (1, 3));
+            graph.Edges.AddSet((2, 3), (2, 4));
+            graph.Edges.AddSet((4, 1), (4, 2));
+
+            var out1 = graph.GetOuts(1);
+            var out2 = graph.GetOuts(2);
+
+            var in1 = graph.GetIns(1);
+            var in2 = graph.GetIns(2);
+
+            graph.Nodes.Clear();
+
+            AssertEmpty(graph.Edges);
+
+            Assert.True(in1.IsDetached);
+            Assert.True(in2.IsDetached);
+            Assert.True(out1.IsDetached);
+            Assert.True(out2.IsDetached);
+        }
+
         //Undirected graph
         //Nodes
         [Fact]
@@ -2366,6 +2396,38 @@ namespace Utility.DataStructures
             Assert.DoesNotContain((2, 5), graph.Edges);
 
             Assert.Equal(2, graph.Edges.Count);
+        }
+
+        [Fact]
+        public void TestUndirectedNodesClearAndSwipeEdges()
+        {
+            var graph = new Graph<int>(false);
+
+            graph.Nodes.Add(1);
+            graph.Nodes.Add(2);
+            graph.Nodes.Add(3);
+            graph.Nodes.Add(4);
+            graph.Nodes.Add(5);
+
+            graph.Edges.AddSet((1, 2), (1, 3));
+            graph.Edges.AddSet((2, 3), (2, 5));
+            graph.Edges.AddSet((3, 3), (3, 5));
+            graph.Edges.AddSet((4, 1), (4, 2));
+
+            var out1 = graph.GetOuts(1);
+            var out2 = graph.GetOuts(2);
+
+            var in1 = graph.GetIns(1);
+            var in2 = graph.GetIns(2);
+
+            graph.Nodes.Clear();
+
+            AssertEmpty(graph.Edges);
+
+            Assert.True(in1.IsDetached);
+            Assert.True(in2.IsDetached);
+            Assert.True(out1.IsDetached);
+            Assert.True(out2.IsDetached);
         }
     }
 }

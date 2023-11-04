@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Utility.Collections;
+using Utility.Collections.Adapters;
 using Utility.Collections.Tools;
-using Utility.Workflow.Collections.Adapters;
 
 namespace Utility.DataStructures
 {

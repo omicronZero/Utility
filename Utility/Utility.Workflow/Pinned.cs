@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Utility.Workflow
+namespace Utility
 {
     public sealed class Pinned<T>
         where T : unmanaged

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Utility.Collections;
-using Utility.Workflow.Collections.Dataflow;
+using Utility.Collections.Objectflow;
 using Xunit;
 
 namespace Utility.Tests.Collection

@@ -1,7 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>Utility</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +13,29 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Utility.Workflow\Utility.Workflow.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="HyperEdge_generated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>HyperEdge_generated.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="HyperEdge_generated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>HyperEdge_generated.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Trees\" />
   </ItemGroup>
 
 </Project>

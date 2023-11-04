@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Utility.Workflow.Collections.Dataflow
+namespace Utility.Collections.Objectflow
 {
     public class QueueFront<T> : IEnumerable<T>
     {

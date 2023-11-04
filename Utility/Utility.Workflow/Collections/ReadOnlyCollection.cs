@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Utility.Workflow.Collections.Adapters;
+using Utility.Collections.Adapters;
 
 namespace Utility.Collections
 {

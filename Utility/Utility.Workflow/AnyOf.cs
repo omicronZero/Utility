@@ -171,6 +171,38 @@ namespace Utility
 			throw new InvalidOperationException("The current instance has not been initialized to a value.");
 		}
 
+		private static void ThrowTypeIndex(int requested, int actual)
+		{
+			throw new InvalidOperationException($"The requested value was { requested } but the actual value is { actual }.");
+		}
+
+		
+		public bool HasValue1 => TypeIndex == 1;
+		
+		public T1 Value1
+		{
+			get
+			{
+				if (TypeIndex != 1)
+					ThrowTypeIndex(1, TypeIndex);
+
+				return _value1;
+			}
+		}
+		
+		public bool HasValue2 => TypeIndex == 2;
+		
+		public T2 Value2
+		{
+			get
+			{
+				if (TypeIndex != 2)
+					ThrowTypeIndex(2, TypeIndex);
+
+				return _value2;
+			}
+		}
+		
 		public T Cast<T>()
 		{
 			
@@ -486,6 +518,51 @@ namespace Utility
 			throw new InvalidOperationException("The current instance has not been initialized to a value.");
 		}
 
+		private static void ThrowTypeIndex(int requested, int actual)
+		{
+			throw new InvalidOperationException($"The requested value was { requested } but the actual value is { actual }.");
+		}
+
+		
+		public bool HasValue1 => TypeIndex == 1;
+		
+		public T1 Value1
+		{
+			get
+			{
+				if (TypeIndex != 1)
+					ThrowTypeIndex(1, TypeIndex);
+
+				return _value1;
+			}
+		}
+		
+		public bool HasValue2 => TypeIndex == 2;
+		
+		public T2 Value2
+		{
+			get
+			{
+				if (TypeIndex != 2)
+					ThrowTypeIndex(2, TypeIndex);
+
+				return _value2;
+			}
+		}
+		
+		public bool HasValue3 => TypeIndex == 3;
+		
+		public T3 Value3
+		{
+			get
+			{
+				if (TypeIndex != 3)
+					ThrowTypeIndex(3, TypeIndex);
+
+				return _value3;
+			}
+		}
+		
 		public T Cast<T>()
 		{
 			
@@ -1155,6 +1232,64 @@ namespace Utility
 			throw new InvalidOperationException("The current instance has not been initialized to a value.");
 		}
 
+		private static void ThrowTypeIndex(int requested, int actual)
+		{
+			throw new InvalidOperationException($"The requested value was { requested } but the actual value is { actual }.");
+		}
+
+		
+		public bool HasValue1 => TypeIndex == 1;
+		
+		public T1 Value1
+		{
+			get
+			{
+				if (TypeIndex != 1)
+					ThrowTypeIndex(1, TypeIndex);
+
+				return _value1;
+			}
+		}
+		
+		public bool HasValue2 => TypeIndex == 2;
+		
+		public T2 Value2
+		{
+			get
+			{
+				if (TypeIndex != 2)
+					ThrowTypeIndex(2, TypeIndex);
+
+				return _value2;
+			}
+		}
+		
+		public bool HasValue3 => TypeIndex == 3;
+		
+		public T3 Value3
+		{
+			get
+			{
+				if (TypeIndex != 3)
+					ThrowTypeIndex(3, TypeIndex);
+
+				return _value3;
+			}
+		}
+		
+		public bool HasValue4 => TypeIndex == 4;
+		
+		public T4 Value4
+		{
+			get
+			{
+				if (TypeIndex != 4)
+					ThrowTypeIndex(4, TypeIndex);
+
+				return _value4;
+			}
+		}
+		
 		public T Cast<T>()
 		{
 			
